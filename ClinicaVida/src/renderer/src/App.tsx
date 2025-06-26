@@ -70,47 +70,47 @@ const App = () => {
 
     // Datos estáticos para requerimientos legales
     const legalRequirements: LegalRequirement[] = [
-        {
-            id: ' ',
-            title: 'Jornada Laboral Máxima',
-            description: 'Máximo 60 horas semanales de trabajo según legislación colombiana',
-            type: 'law'
-        },
-        {
-            id: ' ',
-            title: 'Descanso Post Turno Nocturno',
-            description: 'Derecho a descanso después de turno nocturno',
-            type: 'law'
-        },
-        {
-            id: ' ',
-            title: 'Días Festivos y Domingos',
-            description: 'Aplicar fórmula: (días del mes - (4+n)) * (44/6) para cálculo de horas',
-            type: 'regulation'
-        }
-    ];
+    {
+        id: '1', // Cambiar de ' ' a '1'
+        title: 'Jornada Laboral Máxima',
+        description: 'Máximo 60 horas semanales de trabajo según legislación colombiana',
+        type: 'law'
+    },
+    {
+        id: '2', // Cambiar de ' ' a '2'
+        title: 'Descanso Post Turno Nocturno',
+        description: 'Derecho a descanso después de turno nocturno',
+        type: 'law'
+    },
+    {
+        id: '3', // Cambiar de ' ' a '3'
+        title: 'Días Festivos y Domingos',
+        description: 'Aplicar fórmula: (días del mes - (4+n)) * (44/6) para cálculo de horas',
+        type: 'regulation'
+    }
+];
 
     // Datos estáticos para políticas internas
     const internalPolicies: InternalPolicy[] = [
-        {
-            id: ' ',
-            title: 'Turnos por Especialidad',
-            description: 'Médicos especializados solo pueden tomar turnos C8, médicos de refuerzo solo C6',
-            category: 'specialties'
-        },
-        {
-            id: ' ',
-            title: 'Grupos de Trabajo',
-            description: 'Solo puede pertenecer a un grupo principal: urgencias, hospitalización o refuerzo',
-            category: 'groups'
-        },
-        {
-            id: '',
-            title: 'Especialidades Requeridas',
-            description: 'Para hospitalización: oncología, hemato-oncología, medicina interna',
-            category: 'specialties'
-        }
-    ];
+    {
+        id: '1', // Cambiar de ' ' a '1'
+        title: 'Turnos por Especialidad',
+        description: 'Médicos especializados solo pueden tomar turnos C8, médicos de refuerzo solo C6',
+        category: 'specialties'
+    },
+    {
+        id: '2', // Cambiar de ' ' a '2'
+        title: 'Grupos de Trabajo',
+        description: 'Solo puede pertenecer a un grupo principal: urgencias, hospitalización o refuerzo',
+        category: 'groups'
+    },
+    {
+        id: '3', // Cambiar de '' a '3'
+        title: 'Especialidades Requeridas',
+        description: 'Para Oncología, Hemato-oncología, Medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar',
+        category: 'specialties'
+    }
+];
 
     // Inicializar la base de datos y cargar médicos
     useEffect(() => {
@@ -387,23 +387,40 @@ const App = () => {
                             name="hasSpecialty"
                             checked={doctorData.hasSpecialty}
                             onChange={handleInputChange}
+                            disabled={doctorData.group === 'urgencias'}
                         />
-                        <span className="ml-2">¿Tiene especialidad?</span>
+                        <span className={`ml-2 ${doctorData.group === 'urgencias' ? 'text-gray-400' : ''}`}>
+                            ¿Tiene especialidad?
+                        </span>
                     </label>
+                    {doctorData.group === 'urgencias' && (
+                        <p className="text-sm text-gray-500 mt-1">
+                            Los médicos de urgencias no requieren especialidad
+                        </p>
+                    )}
                 </div>
                 {showSpecialtyField && (
-                    <div className="input-group">
-                        <label className="block text-sm font-medium">Especialidad</label>
-                        <input
-                            type="text"
-                            name="specialty"
-                            value={doctorData.specialty}
-                            onChange={handleInputChange}
-                            className="input"
-                            placeholder="ej: oncología, hemato-oncología, medicina interna"
-                        />
-                    </div>
-                )}
+                <div className="input-group">
+                    <label className="block text-sm font-medium">Especialidad</label>
+                    <select
+                        name="specialty"
+                        value={doctorData.specialty}
+                        onChange={handleInputChange}
+                        className="input"
+                        required
+                        disabled={doctorData.group === 'urgencias'}
+                    >
+                        <option value="">Seleccionar especialidad</option>
+                        <option value="Oncología">Oncología</option>
+                        <option value="Hemato-oncología">Hemato-oncología</option>
+                        <option value="Medicina interna">Medicina interna</option>
+                        <option value="Dolor y cuidados paliativos">Dolor y cuidados paliativos</option>
+                        <option value="Cirugía oncológica">Cirugía oncológica</option>
+                        <option value="Cirugía de tórax">Cirugía de tórax</option>
+                        <option value="Cirugía hepatobiliar">Cirugía hepatobiliar</option>
+                    </select>
+                </div>
+            )}
                 <div className="form-actions">
                     <button type="submit" className="custom-button">
                         {isEditing ? 'Guardar Cambios' : 'Agregar Médico'}
@@ -422,156 +439,166 @@ const App = () => {
         </div>
     );
 
-    const renderDoctorsList = () => (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Lista de Médicos</h2>
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-4 py-2 text-left">Nombre</th>
-                            <th className="px-4 py-2 text-left">ID</th>
-                            <th className="px-4 py-2 text-left">Grupo</th>
-                            <th className="px-4 py-2 text-left">Tipo</th>
-                            <th className="px-4 py-2 text-left">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {doctors.map((doctor) => (
-                            <tr key={doctor.id} className="border-t border-gray-200 hover:bg-gray-50">
-                                <td className="px-4 py-2">{doctor.name}</td>
-                                <td className="px-4 py-2">{doctor.idNumber}</td>
-                                <td className="px-4 py-2 capitalize">{doctor.group || 'No asignado'}</td>
-                                <td className="px-4 py-2">
-                                    {doctor.hasSpecialty
-                                        ? `Especialista en ${doctor.specialty}`
-                                        : 'Médico General'}
-                                </td>
-                                <td className="px-4 py-2">
-                                    <button
-                                        onClick={() => handleEdit(doctor)}
-                                        className="text-blue-600 hover:text-blue-800 mr-3"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(doctor.id!)}
-                                        className="text-red-600 hover:text-red-800"
-                                    >
-                                        Eliminar
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
+    const renderDoctorsList = () => {
+    // Agrupar médicos por grupo principal
+        const groupedDoctors = {
+            urgencias: doctors.filter(d => d.group === 'urgencias'),
+            hospitalización: doctors.filter(d => d.group === 'hospitalización'),
+            refuerzo: doctors.filter(d => d.group === 'refuerzo')
+        };
 
-    const renderLegalRequirements = () => (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Requerimientos Legales</h2>
-            <div className="space-y-4">
-                {legalRequirements.map(req => (
-                    <div key={req.id} className="bg-blue-50 border-l-4 border-blue-400 p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {req.id}
-                                </span>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-blue-800">{req.title}</h3>
-                                <p className="mt-1 text-sm text-blue-700">{req.description}</p>
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-200 text-blue-900 mt-2">
-                                    {req.type === 'law' ? 'Ley' : 'Reglamento'}
-                                </span>
-                            </div>
+        // Subgrupar médicos de hospitalización por especialidad
+        const hospitalizationBySpecialty = groupedDoctors.hospitalización.reduce((acc, doctor) => {
+            const specialty = doctor.specialty || 'Sin especialidad';
+            if (!acc[specialty]) {
+                acc[specialty] = [];
+            }
+            acc[specialty].push(doctor);
+            return acc;
+        }, {} as Record<string, Doctor[]>);
+
+        const renderDoctorRow = (doctor: Doctor) => (
+            <tr key={doctor.id} className="border-t border-gray-200 hover:bg-gray-50">
+                <td className="px-4 py-2">{doctor.name}</td>
+                <td className="px-4 py-2">{doctor.idNumber}</td>
+                <td className="px-4 py-2">{doctor.email}</td>
+                <td className="px-4 py-2">
+                    {doctor.hasSpecialty
+                        ? `Especialista en ${doctor.specialty}`
+                        : 'Médico General'}
+                </td>
+                <td className="px-4 py-2">
+                    <button
+                        onClick={() => handleEdit(doctor)}
+                        className="custom-button text-sm px-3 py-1.5 mr-2 bg-blue-600 hover:bg-blue-700"
+                    >
+                        Editar
+                    </button>
+                    <button
+                        onClick={() => handleDelete(doctor.id!)}
+                        className="custom-button text-sm px-3 py-1.5 bg-red-600 hover:bg-red-700"
+                    >
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        );
+
+        return (
+            <div className="p-4">
+                <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
+                
+                {/* Grupo Urgencias */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-bold mb-3 text-red-600 bg-red-50 p-3 rounded-lg">
+                        🚨 Urgencias ({groupedDoctors.urgencias.length} médicos)
+                    </h3>
+                    {groupedDoctors.urgencias.length > 0 ? (
+                        <div className="overflow-x-auto mb-4">
+                            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                                <thead className="bg-red-100">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left">Nombre</th>
+                                        <th className="px-4 py-2 text-left">ID</th>
+                                        <th className="px-4 py-2 text-left">Email</th>
+                                        <th className="px-4 py-2 text-left">Tipo</th>
+                                        <th className="px-4 py-2 text-left">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {groupedDoctors.urgencias.map(renderDoctorRow)}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-6 p-4 bg-green-100 rounded-lg">
-                <p className="text-green-800 font-medium">✓ Se cumplen las restricciones legales</p>
-            </div>
-        </div>
-    );
-
-    const renderInternalPolicies = () => (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Políticas Internas</h2>
-            <div className="space-y-4">
-                {internalPolicies.map(policy => (
-                    <div key={policy.id} className="bg-purple-50 border-l-4 border-purple-400 p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    {policy.id}
-                                </span>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-purple-800">{policy.title}</h3>
-                                <p className="mt-1 text-sm text-purple-700">{policy.description}</p>
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-200 text-purple-900 mt-2 capitalize">
-                                    {policy.category}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-6 p-4 bg-green-100 rounded-lg">
-                <p className="text-green-800 font-medium">✓ Se cumplen las políticas internas</p>
-            </div>
-        </div>
-    );
-
-    const renderMonthlyHours = () => (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Calcular Horas Laborales del Mes</h2>
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Seleccionar Mes</label>
-                <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="input mr-4"
-                />
-                <button
-                    onClick={calculateMonthlyHours}
-                    className="custom-button"
-                >
-                    Calcular Horas
-                </button>
-            </div>
-
-            {monthlyHours.length > 0 && (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="px-4 py-2 text-left">Médico</th>
-                                <th className="px-4 py-2 text-left">Días Laborales</th>
-                                <th className="px-4 py-2 text-left">Horas Totales</th>
-                                <th className="px-4 py-2 text-left">Horas Disponibles</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {monthlyHours.map((calc) => (
-                                <tr key={calc.doctorId} className="border-t border-gray-200">
-                                    <td className="px-4 py-2">{calc.doctorName}</td>
-                                    <td className="px-4 py-2">{calc.workingDays}</td>
-                                    <td className="px-4 py-2">{calc.totalHours}h</td>
-                                    <td className="px-4 py-2">{calc.availableHours}h</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    ) : (
+                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a urgencias</p>
+                    )}
                 </div>
-            )}
-        </div>
-    );
+
+                {/* Grupo Hospitalización con subgrupos por especialidad */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-bold mb-3 text-blue-600 bg-blue-50 p-3 rounded-lg">
+                        🏥 Hospitalización ({groupedDoctors.hospitalización.length} médicos)
+                    </h3>
+                    {groupedDoctors.hospitalización.length > 0 ? (
+                        <div className="ml-4">
+                            {Object.entries(hospitalizationBySpecialty).map(([specialty, doctors]) => (
+                                <div key={specialty} className="mb-6">
+                                    <h4 className="text-lg font-semibold mb-2 text-blue-700 bg-blue-25 p-2 rounded border-l-4 border-blue-400">
+                                        📋 {specialty} ({doctors.length} médicos)
+                                    </h4>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                                            <thead className="bg-blue-100">
+                                                <tr>
+                                                    <th className="px-4 py-2 text-left">Nombre</th>
+                                                    <th className="px-4 py-2 text-left">ID</th>
+                                                    <th className="px-4 py-2 text-left">Email</th>
+                                                    <th className="px-4 py-2 text-left">Tipo</th>
+                                                    <th className="px-4 py-2 text-left">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {doctors.map(renderDoctorRow)}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a hospitalización</p>
+                    )}
+                </div>
+
+                {/* Grupo Refuerzo */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-bold mb-3 text-green-600 bg-green-50 p-3 rounded-lg">
+                        💪 Refuerzo ({groupedDoctors.refuerzo.length} médicos)
+                    </h3>
+                    {groupedDoctors.refuerzo.length > 0 ? (
+                        <div className="overflow-x-auto mb-4">
+                            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                                <thead className="bg-green-100">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left">Nombre</th>
+                                        <th className="px-4 py-2 text-left">ID</th>
+                                        <th className="px-4 py-2 text-left">Email</th>
+                                        <th className="px-4 py-2 text-left">Tipo</th>
+                                        <th className="px-4 py-2 text-left">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {groupedDoctors.refuerzo.map(renderDoctorRow)}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a refuerzo</p>
+                    )}
+                </div>
+
+                {/* Resumen total */}
+                <div className="bg-gray-100 p-4 rounded-lg">
+                    <h4 className="font-bold text-gray-800 mb-2">📊 Resumen Total</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-red-600">{groupedDoctors.urgencias.length}</span>
+                            <span className="text-sm text-gray-600">Urgencias</span>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-blue-600">{groupedDoctors.hospitalización.length}</span>
+                            <span className="text-sm text-gray-600">Hospitalización</span>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-green-600">{groupedDoctors.refuerzo.length}</span>
+                            <span className="text-sm text-gray-600">Refuerzo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     const renderShiftAssignment = () => (
     <div className="p-4">
@@ -635,6 +662,196 @@ const App = () => {
         )}
     </div>
 );
+
+const renderLegalRequirements = () => (
+    <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Requerimientos Legales</h2>
+        <div className="space-y-4">
+            {legalRequirements.map((requirement) => (
+                <div key={requirement.id} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                    <div className="flex items-center mb-2">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            requirement.type === 'law' 
+                                ? 'bg-red-100 text-red-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                            {requirement.type === 'law' ? 'LEY' : 'REGULACIÓN'}
+                        </span>
+                        <h3 className="text-lg font-bold text-blue-800 ml-3">{requirement.title}</h3>
+                    </div>
+                    <p className="text-blue-700">{requirement.description}</p>
+                </div>
+            ))}
+        </div>
+        
+        <div className="mt-6 bg-gray-100 p-4 rounded-lg">
+            <h4 className="font-bold text-gray-800 mb-2">📋 Resumen de Cumplimiento</h4>
+            <p className="text-sm text-gray-600">
+                Estos requerimientos deben ser considerados al momento de asignar turnos y calcular horas laborales.
+            </p>
+        </div>
+    </div>
+);
+
+const renderInternalPolicies = () => (
+    <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Políticas Internas</h2>
+        <div className="space-y-4">
+            {internalPolicies.map((policy) => (
+                <div key={policy.id} className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+                    <div className="flex items-center mb-2">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            policy.category === 'schedules' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : policy.category === 'groups'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-orange-100 text-orange-800'
+                        }`}>
+                            {policy.category === 'schedules' && 'HORARIOS'}
+                            {policy.category === 'groups' && 'GRUPOS'}
+                            {policy.category === 'specialties' && 'ESPECIALIDADES'}
+                        </span>
+                        <h3 className="text-lg font-bold text-green-800 ml-3">{policy.title}</h3>
+                    </div>
+                    <p className="text-green-700">{policy.description}</p>
+                </div>
+            ))}
+        </div>
+        
+        <div className="mt-6 bg-gray-100 p-4 rounded-lg">
+            <h4 className="font-bold text-gray-800 mb-2">⚙️ Configuración Actual</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                <div className="text-center">
+                    <span className="block text-xl font-bold text-purple-600">3</span>
+                    <span className="text-sm text-gray-600">Grupos Principales</span>
+                </div>
+                <div className="text-center">
+                    <span className="block text-xl font-bold text-orange-600">7</span>
+                    <span className="text-sm text-gray-600">Especialidades</span>
+                </div>
+                <div className="text-center">
+                    <span className="block text-xl font-bold text-blue-600">3</span>
+                    <span className="text-sm text-gray-600">Tipos de Turno</span>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const renderMonthlyHours = () => (
+    <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">Horas Laborales Mensuales</h2>
+        
+        <div className="mb-6 flex items-center gap-4">
+            <div>
+                <label className="block text-sm font-medium mb-1">Seleccionar Mes:</label>
+                <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="input"
+                />
+            </div>
+            <button
+                onClick={calculateMonthlyHours}
+                className="custom-button bg-blue-600 hover:bg-blue-700 mt-6"
+            >
+                Calcular Horas
+            </button>
+        </div>
+
+        {monthlyHours.length > 0 && (
+            <div>
+                <h3 className="text-lg font-bold mb-3">
+                    Cálculo para {new Date(selectedMonth + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                </h3>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="px-4 py-2 text-left">Médico</th>
+                                <th className="px-4 py-2 text-left">ID</th>
+                                <th className="px-4 py-2 text-left">Días Laborales</th>
+                                <th className="px-4 py-2 text-left">Horas Totales</th>
+                                <th className="px-4 py-2 text-left">Horas Disponibles</th>
+                                <th className="px-4 py-2 text-left">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {monthlyHours.map((hours, index) => (
+                                <tr key={index} className="border-t border-gray-200 hover:bg-gray-50">
+                                    <td className="px-4 py-2">{hours.doctorName}</td>
+                                    <td className="px-4 py-2">{hours.doctorId}</td>
+                                    <td className="px-4 py-2">{hours.workingDays}</td>
+                                    <td className="px-4 py-2 font-semibold">{hours.totalHours}h</td>
+                                    <td className="px-4 py-2 text-green-600 font-semibold">{hours.availableHours}h</td>
+                                    <td className="px-4 py-2">
+                                        <span className={`px-2 py-1 rounded text-xs ${
+                                            hours.availableHours >= 160 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : hours.availableHours >= 120
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-red-100 text-red-800'
+                                        }`}>
+                                            {hours.availableHours >= 160 ? 'Óptimo' : 
+                                             hours.availableHours >= 120 ? 'Moderado' : 'Bajo'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div className="mt-6 bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-blue-800 mb-2">📊 Resumen del Mes</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                            <span className="block text-xl font-bold text-blue-600">
+                                {monthlyHours.reduce((sum, h) => sum + h.totalHours, 0)}h
+                            </span>
+                            <span className="text-sm text-gray-600">Total Horas</span>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-xl font-bold text-green-600">
+                                {monthlyHours.reduce((sum, h) => sum + h.availableHours, 0)}h
+                            </span>
+                            <span className="text-sm text-gray-600">Horas Disponibles</span>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-xl font-bold text-purple-600">
+                                {monthlyHours.reduce((sum, h) => sum + h.workingDays, 0)}
+                            </span>
+                            <span className="text-sm text-gray-600">Días Laborales Total</span>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-xl font-bold text-orange-600">
+                                {Math.round(monthlyHours.reduce((sum, h) => sum + h.availableHours, 0) / monthlyHours.length)}h
+                            </span>
+                            <span className="text-sm text-gray-600">Promedio por Médico</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {monthlyHours.length === 0 && doctors.length > 0 && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                <p className="text-yellow-800">
+                    <strong>Información:</strong> Selecciona un mes y presiona "Calcular Horas" para ver el análisis de horas laborales.
+                </p>
+            </div>
+        )}
+
+        {doctors.length === 0 && (
+            <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                <p className="text-gray-600">
+                    <strong>Sin médicos:</strong> Primero debes agregar médicos al sistema para calcular las horas laborales.
+                </p>
+            </div>
+        )}
+    </div>
+);    
 
     const renderContent = () => {
         switch (activeTab) {

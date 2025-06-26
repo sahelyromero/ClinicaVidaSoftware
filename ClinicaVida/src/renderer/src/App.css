@@ -178,8 +178,11 @@ th {
 
 .doctor-list-container {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     overflow-y: auto;
 =======
+=======
+>>>>>>> Stashed changes
     max-height: 40vh; /* Limita la altura máxima al 70% de la altura de la ventana */
     overflow-y: auto; /* Habilita el scroll vertical */
     padding: 20px; /* Espaciado interno */
@@ -198,5 +201,8 @@ th {
 .doctor-list-container::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 10px;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }

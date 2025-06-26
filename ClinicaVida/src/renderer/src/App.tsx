@@ -486,7 +486,10 @@ const App = () => {
 
         return (
             <div className="doctor-list-container">
+<<<<<<< Updated upstream
                     
+=======
+>>>>>>> Stashed changes
                 <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
 
                 {/* Grupo Urgencias */}

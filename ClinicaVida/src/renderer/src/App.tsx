@@ -279,7 +279,7 @@ const App = () => {
                 let shiftType: 'C6' | 'C8' | 'C12' = 'C8';
 
                 // Aplicar reglas de negocio
-                if (doctor.group === 'refuerzo') {
+                if (doctor.specialty === 'Refuerzo') {
                     shiftType = 'C6';
                 } else if (doctor.hasSpecialty) {
                     shiftType = 'C8';
@@ -401,7 +401,7 @@ const App = () => {
                     >
                         <option value="urgencias">Urgencias</option>
                         <option value="hospitalización">Hospitalización</option>
-                        <option value="refuerzo">Refuerzo</option>
+
                     </select>
                 </div>
                 <div className="input-group">
@@ -442,6 +442,7 @@ const App = () => {
                         <option value="Cirugía oncológica">Cirugía oncológica</option>
                         <option value="Cirugía de tórax">Cirugía de tórax</option>
                         <option value="Cirugía hepatobiliar">Cirugía hepatobiliar</option>
+                        <option value="Refuerzo">Refuerzo</option>
                     </select>
                 </div>
             )}
@@ -468,7 +469,7 @@ const App = () => {
         const groupedDoctors = {
             urgencias: doctors.filter(d => d.group === 'urgencias'),
             hospitalización: doctors.filter(d => d.group === 'hospitalización'),
-            refuerzo: doctors.filter(d => d.group === 'refuerzo')
+
         };
 
         // Subgrupar médicos de hospitalización por especialidad
@@ -509,7 +510,7 @@ const App = () => {
         );
 
         return (
-            <div className="p-4">
+            <div className="doctor-list-container">
                 <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
 
                 {/* Grupo Urgencias */}
@@ -575,32 +576,7 @@ const App = () => {
                     )}
                 </div>
 
-                {/* Grupo Refuerzo */}
-                <div className="mb-8">
-                    <h3 className="text-xl font-bold mb-3 text-green-600 bg-green-50 p-3 rounded-lg">
-                        💪 Refuerzo ({groupedDoctors.refuerzo.length} médicos)
-                    </h3>
-                    {groupedDoctors.refuerzo.length > 0 ? (
-                        <div className="overflow-x-auto mb-4">
-                            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                                <thead className="bg-green-100">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left">Nombre</th>
-                                        <th className="px-4 py-2 text-left">ID</th>
-                                        <th className="px-4 py-2 text-left">Email</th>
-                                        <th className="px-4 py-2 text-left">Tipo</th>
-                                        <th className="px-4 py-2 text-left">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {groupedDoctors.refuerzo.map(renderDoctorRow)}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a refuerzo</p>
-                    )}
-                </div>
+
 
                 {/* Resumen total */}
                 <div className="bg-gray-100 p-4 rounded-lg">
@@ -614,10 +590,7 @@ const App = () => {
                             <span className="block text-2xl font-bold text-blue-600">{groupedDoctors.hospitalización.length}</span>
                             <span className="text-sm text-gray-600">Hospitalización</span>
                         </div>
-                        <div className="text-center">
-                            <span className="block text-2xl font-bold text-green-600">{groupedDoctors.refuerzo.length}</span>
-                            <span className="text-sm text-gray-600">Refuerzo</span>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -746,11 +719,11 @@ const renderInternalPolicies = () => (
             <h4 className="font-bold text-gray-800 mb-2">⚙️ Configuración Actual</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 <div className="text-center">
-                    <span className="block text-xl font-bold text-purple-600">3</span>
+                    <span className="block text-xl font-bold text-purple-600">2</span>
                     <span className="text-sm text-gray-600">Grupos Principales</span>
                 </div>
                 <div className="text-center">
-                    <span className="block text-xl font-bold text-orange-600">7</span>
+                    <span className="block text-xl font-bold text-orange-600">8</span>
                     <span className="text-sm text-gray-600">Especialidades</span>
                 </div>
                 <div className="text-center">
@@ -787,74 +760,40 @@ const renderMonthlyHours = () => (
         {monthlyHours.length > 0 && (
             <div>
                 <h3 className="text-lg font-bold mb-3">
-                    Cálculo para {new Date(selectedMonth + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    Horas Mínimas para {new Date(selectedMonth + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                 </h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="px-4 py-2 text-left">Médico</th>
-                                <th className="px-4 py-2 text-left">ID</th>
-                                <th className="px-4 py-2 text-left">Días Laborales</th>
-                                <th className="px-4 py-2 text-left">Horas Totales</th>
-                                <th className="px-4 py-2 text-left">Horas Disponibles</th>
-                                <th className="px-4 py-2 text-left">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {monthlyHours.map((hours, index) => (
-                                <tr key={index} className="border-t border-gray-200 hover:bg-gray-50">
-                                    <td className="px-4 py-2">{hours.doctorName}</td>
-                                    <td className="px-4 py-2">{hours.doctorId}</td>
-                                    <td className="px-4 py-2">{hours.workingDays}</td>
-                                    <td className="px-4 py-2 font-semibold">{hours.totalHours}h</td>
-                                    <td className="px-4 py-2 text-green-600 font-semibold">{hours.availableHours}h</td>
-                                    <td className="px-4 py-2">
-                                        <span className={`px-2 py-1 rounded text-xs ${
-                                            hours.availableHours >= 160
-                                                ? 'bg-green-100 text-green-800'
-                                                : hours.availableHours >= 120
-                                                ? 'bg-yellow-100 text-yellow-800'
-                                                : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {hours.availableHours >= 160 ? 'Óptimo' :
-                                             hours.availableHours >= 120 ? 'Moderado' : 'Bajo'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
 
-                <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-bold text-blue-800 mb-2">📊 Resumen del Mes</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="text-center">
                             <span className="block text-xl font-bold text-blue-600">
-                                {monthlyHours.reduce((sum, h) => sum + h.totalHours, 0)}h
+                                {monthlyHours[0].workingDays}
                             </span>
-                            <span className="text-sm text-gray-600">Total Horas</span>
+                            <span className="text-sm text-gray-600">Días Hábiles</span>
                         </div>
                         <div className="text-center">
-                            <span className="block text-xl font-bold text-green-600">
-                                {monthlyHours.reduce((sum, h) => sum + h.availableHours, 0)}h
+                            <span className="block text-3xl font-bold text-green-600">
+                                {monthlyHours[0].totalHours}h
                             </span>
-                            <span className="text-sm text-gray-600">Horas Disponibles</span>
+                            <span className="text-sm text-gray-600">Horas Mínimas</span>
                         </div>
                         <div className="text-center">
-                            <span className="block text-xl font-bold text-purple-600">
-                                {monthlyHours.reduce((sum, h) => sum + h.workingDays, 0)}
+                            <span className="block text-3xl font-bold text-purple-600">
+                                {Math.round(monthlyHours[0].totalHours / monthlyHours[0].workingDays * 10) / 10}h
                             </span>
-                            <span className="text-sm text-gray-600">Días Laborales Total</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-xl font-bold text-orange-600">
-                                {Math.round(monthlyHours.reduce((sum, h) => sum + h.availableHours, 0) / monthlyHours.length)}h
-                            </span>
-                            <span className="text-sm text-gray-600">Promedio por Médico</span>
+                            <span className="text-sm text-gray-600">Horas por Día</span>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                    <h4 className="font-bold text-yellow-800 mb-2">📋 Detalles del Cálculo</h4>
+                    <p className="text-yellow-700 text-sm">
+                        <strong>Fórmula aplicada:</strong> (Días del mes - Domingos - Festivos) × (44 horas/6 días)
+                    </p>
+                    <p className="text-yellow-700 text-sm mt-1">
+                        <strong>Cálculo:</strong> ({new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth() + 1, 0).getDate()} días - {Math.floor(new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth() + 1, 0).getDate() / 7) + (new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth(), 1).getDay() === 0 ? 1 : 0)} domingos - festivos) × 7.33 horas/día
+                    </p>
                 </div>
             </div>
         )}

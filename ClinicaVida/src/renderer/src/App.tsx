@@ -52,7 +52,7 @@ const App = () => {
         birthDate: '',
         hasSpecialty: false,
         specialty: '',
-        group: 'urgencias', // Añadido grupo por defecto
+        group: 'hospitalización', // Añadido grupo por defecto
         email: '' // Añadido email
     });
     const [showSpecialtyField, setShowSpecialtyField] = useState<boolean>(false);
@@ -101,13 +101,13 @@ const App = () => {
     {
         id: '2', // Cambiar de ' ' a '2'
         title: 'Grupos de Trabajo',
-        description: 'Solo puede pertenecer a un grupo principal: urgencias, hospitalización o refuerzo',
+        description: 'Solo puede pertenecer a un grupo principal: urgencias u hospitalización. Refuerzo es una especialidad dentro de hospitalización',
         category: 'groups'
     },
     {
         id: '3', // Cambiar de '' a '3'
         title: 'Especialidades Requeridas',
-        description: 'Para Oncología, Hemato-oncología, Medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar',
+        description: 'Para Oncología, Hemato-oncología, Medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar y Refuerzo',
         category: 'specialties'
     }
 ];
@@ -152,15 +152,18 @@ const App = () => {
         const errors: string[] = [];
 
         // Validar grupo principal
-        if (!['urgencias', 'hospitalización', 'refuerzo'].includes(data.group || '')) {
-            errors.push('Debe seleccionar un grupo válido (urgencias, hospitalización o refuerzo)');
+        if (!['urgencias', 'hospitalización'].includes(data.group || '')) {
+            errors.push('Debe seleccionar un grupo válido (urgencias u hospitalización)');
+        }
+        if (data.group === 'hospitalización' && data.specialty === 'Refuerzo' && !data.hasSpecialty) {
+            errors.push('Los médicos de refuerzo deben estar marcados como especialistas');
         }
 
         // Validar especialidades para hospitalización
         if (data.group === 'hospitalización' && data.hasSpecialty) {
-            const validSpecialties = ['oncología', 'hemato-oncología', 'medicina interna'];
+            const validSpecialties = ['oncología', 'hemato-oncología', 'medicina interna', 'Dolor y cuidados paliativos', 'Cirugía oncológica', 'Cirugía de tórax', 'Cirugía hepatobiliar', 'Refuerzo'];
             if (!validSpecialties.some(spec => data.specialty?.toLowerCase().includes(spec))) {
-                errors.push('Para hospitalización, la especialidad debe ser oncología, hemato-oncología o medicina interna');
+                errors.push('Para hospitalización, la especialidad debe ser oncología, hemato-oncología, medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar, Refuerzo');
             }
         }
 
@@ -193,7 +196,7 @@ const App = () => {
             birthDate: '',
             hasSpecialty: false,
             specialty: '',
-            group: 'urgencias',
+            group: 'hospitalización',
             email: ''
         });
         setShowSpecialtyField(false);
@@ -227,23 +230,44 @@ const App = () => {
     const calculateMonthlyHours = () => {
         const [year, month] = selectedMonth.split('-').map(Number);
         const daysInMonth = new Date(year, month, 0).getDate();
-        const sundays = Math.floor(daysInMonth / 7) + (new Date(year, month - 1, 1).getDay() === 0 ? 1 : 0);
-        const holidays = 2; // Estimado de días festivos por mes
+                // Festivos en Colombia por mes
+        const colombianHolidays = {
+            1: [1, 6], // Enero: Año Nuevo, Reyes Magos
+            3: [24], // Marzo: San José
+            4: [17, 18], // Abril: Jueves Santo, Viernes Santo (fechas aproximadas)
+            5: [1], // Mayo: Día del trabajo
+            6: [2, 23, 30], // Junio: Ascensión, Corpus Christi, San Pedro y San Pablo
+            7: [20], // Julio: Independencia
+            8: [7, 18], // Agosto: Boyacá, Asunción
+            10: [13], // Octubre: Día de la raza
+            11: [3, 17], // Noviembre: Todos los Santos, Independencia de Cartagena
+            12: [8, 25] // Diciembre: Inmaculada, Navidad
+        };
 
-        const calculations = doctors.map(doctor => {
-            const workingDays = daysInMonth - sundays - holidays;
-            const totalHours = workingDays * (44 / 6); // 44 horas semanales / 6 días
+        // Contar domingos en el mes
+        let sundays = 0;
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month - 1, day);
+            if (date.getDay() === 0) {
+                sundays++;
+            }
+        }
 
-            return {
-                doctorId: doctor.idNumber,
-                doctorName: doctor.name,
-                totalHours: Math.round(totalHours),
-                availableHours: Math.round(totalHours * 0.9), // 90% disponible
-                workingDays
-            };
-        });
+        // Obtener festivos del mes actual
+        const holidaysInMonth = colombianHolidays[month] || [];
+        const holidays = holidaysInMonth.length;
 
-        setMonthlyHours(calculations);
+        // Calcular horas mínimas según la fórmula
+        const workingDays = daysInMonth - sundays - holidays;
+        const minimumHours = Math.round(workingDays * (44 / 6));
+
+        setMonthlyHours([{
+            doctorId: 'system',
+            doctorName: 'Horas Mínimas del Mes',
+            totalHours: minimumHours,
+            availableHours: workingDays,
+            workingDays: workingDays
+        }]);
     };
 
     const generateShiftAssignments = () => {

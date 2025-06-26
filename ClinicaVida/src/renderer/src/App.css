@@ -175,3 +175,24 @@ th {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 1rem 0.5rem; /* Espaciado entre botones */
 }
+
+.doctor-list-container {
+    max-height: 40vh; /* Limita la altura máxima al 70% de la altura de la ventana */
+    overflow-y: auto; /* Habilita el scroll vertical */
+    padding: 20px; /* Espaciado interno */
+    background: white; /* Fondo blanco */
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+/* Personaliza el scroll */
+.doctor-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+.doctor-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.doctor-list-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}

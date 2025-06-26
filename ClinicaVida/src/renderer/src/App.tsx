@@ -485,7 +485,7 @@ const App = () => {
         );
 
         return (
-            <div className="p-4 max-h-[200px] flex-1 overflow-auto p-4">
+            <div className="doctor-list-container">
                     
                 <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
 

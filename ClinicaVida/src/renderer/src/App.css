@@ -175,3 +175,7 @@ th {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 1rem 0.5rem; /* Espaciado entre botones */
 }
+
+.doctor-list-container {
+    overflow-y: auto;
+}

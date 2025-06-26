@@ -191,6 +191,23 @@ const Calendario: React.FC = () => {
     return years;
   };
 
+
+  // Función para recargar médicos
+  const reloadDoctors = async () => {
+    try {
+      setLoading(true);
+      const doctors = await getDoctors();
+      const medicosFromDB = doctors.map(convertDoctorToMedico);
+      setMedicos(medicosFromDB);
+      setError(null);
+    } catch (err) {
+      console.error('Error al recargar médicos:', err);
+      setError('Error al recargar los médicos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 overflow-auto p-4">
@@ -206,7 +223,7 @@ const Calendario: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-auto p-4">
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold">Calendario de Turnos - {monthTitle}</h2>
         <div className="flex gap-2">
           <select value={selectedMonth} onChange={handleMonthChange} className="border rounded px-2 py-1 text-sm">
@@ -220,6 +237,13 @@ const Calendario: React.FC = () => {
             ))}
           </select>
         </div>
+        <button
+          onClick={reloadDoctors}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          disabled={loading}
+        >
+          {loading ? 'Cargando...' : 'Recargar'}
+        </button>        
       </div>
 
       {error && (

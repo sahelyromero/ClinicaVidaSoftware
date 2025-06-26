@@ -67,6 +67,7 @@ const App = () => {
 
     // Estado para controlar el modal del calendario
     const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
+    
 
     // Datos estáticos para requerimientos legales
     const legalRequirements: LegalRequirement[] = [
@@ -148,27 +149,38 @@ const App = () => {
         }
     };
 
-    const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
-        const errors: string[] = [];
+const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
+    const errors: string[] = [];
 
-        // Validar grupo principal
-        if (!['urgencias', 'hospitalización'].includes(data.group || '')) {
-            errors.push('Debe seleccionar un grupo válido (urgencias u hospitalización)');
-        }
-        if (data.group === 'hospitalización' && data.specialty === 'Refuerzo' && !data.hasSpecialty) {
-            errors.push('Los médicos de refuerzo deben estar marcados como especialistas');
-        }
+    // Validar grupo principal
+    if (!['urgencias', 'hospitalización'].includes(data.group || '')) {
+        errors.push('Debe seleccionar un grupo válido (urgencias u hospitalización)');
+    }
+    if (data.group === 'hospitalización' && data.specialty === 'Refuerzo' && !data.hasSpecialty) {
+        errors.push('Los médicos de refuerzo deben estar marcados como especialistas');
+    }
 
-        // Validar especialidades para hospitalización
-        if (data.group === 'hospitalización' && data.hasSpecialty) {
-            const validSpecialties = ['oncología', 'hemato-oncología', 'medicina interna', 'Dolor y cuidados paliativos', 'Cirugía oncológica', 'Cirugía de tórax', 'Cirugía hepatobiliar', 'Refuerzo'];
-            if (!validSpecialties.some(spec => data.specialty?.toLowerCase().includes(spec))) {
-                errors.push('Para hospitalización, la especialidad debe ser oncología, hemato-oncología, medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar, Refuerzo');
-            }
+    // Validar especialidades para hospitalización
+    if (data.group === 'hospitalización' && data.hasSpecialty) {
+        const validSpecialties = [
+            'Oncología', 
+            'Hemato-oncología', 
+            'Medicina interna', 
+            'Dolor y cuidados paliativos', 
+            'Cirugía oncológica', 
+            'Cirugía de tórax', 
+            'Cirugía hepatobiliar', 
+            'Refuerzo'
+        ];
+        
+        // Comparación exacta (sin distinguir mayúsculas/minúsculas)
+        if (!validSpecialties.some(spec => spec.toLowerCase() === data.specialty?.toLowerCase())) {
+            errors.push('Para hospitalización, la especialidad debe ser: Oncología, Hemato-oncología, Medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar o Refuerzo');
         }
+    }
 
-        return errors;
-    };
+    return errors;
+};
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -612,7 +624,8 @@ const App = () => {
         {/* Información adicional */}
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
             <p className="text-blue-800">
-                <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente.
+                <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente. Recuerda que esto es una versión beta
+                por lo que no se cumplen los requerimientos legales ni los de políticas internas.
             </p>
         </div>
 

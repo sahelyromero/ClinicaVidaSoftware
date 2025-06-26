@@ -148,27 +148,38 @@ const App = () => {
         }
     };
 
-    const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
-        const errors: string[] = [];
+const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
+    const errors: string[] = [];
 
-        // Validar grupo principal
-        if (!['urgencias', 'hospitalización'].includes(data.group || '')) {
-            errors.push('Debe seleccionar un grupo válido (urgencias u hospitalización)');
-        }
-        if (data.group === 'hospitalización' && data.specialty === 'Refuerzo' && !data.hasSpecialty) {
-            errors.push('Los médicos de refuerzo deben estar marcados como especialistas');
-        }
+    // Validar grupo principal
+    if (!['urgencias', 'hospitalización'].includes(data.group || '')) {
+        errors.push('Debe seleccionar un grupo válido (urgencias u hospitalización)');
+    }
+    if (data.group === 'hospitalización' && data.specialty === 'Refuerzo' && !data.hasSpecialty) {
+        errors.push('Los médicos de refuerzo deben estar marcados como especialistas');
+    }
 
-        // Validar especialidades para hospitalización
-        if (data.group === 'hospitalización' && data.hasSpecialty) {
-            const validSpecialties = ['oncología', 'hemato-oncología', 'medicina interna', 'Dolor y cuidados paliativos', 'Cirugía oncológica', 'Cirugía de tórax', 'Cirugía hepatobiliar', 'Refuerzo'];
-            if (!validSpecialties.some(spec => data.specialty?.toLowerCase().includes(spec))) {
-                errors.push('Para hospitalización, la especialidad debe ser oncología, hemato-oncología, medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar, Refuerzo');
-            }
+    // Validar especialidades para hospitalización
+    if (data.group === 'hospitalización' && data.hasSpecialty) {
+        const validSpecialties = [
+            'Oncología', 
+            'Hemato-oncología', 
+            'Medicina interna', 
+            'Dolor y cuidados paliativos', 
+            'Cirugía oncológica', 
+            'Cirugía de tórax', 
+            'Cirugía hepatobiliar', 
+            'Refuerzo'
+        ];
+        
+        // Comparación exacta (sin distinguir mayúsculas/minúsculas)
+        if (!validSpecialties.some(spec => spec.toLowerCase() === data.specialty?.toLowerCase())) {
+            errors.push('Para hospitalización, la especialidad debe ser: Oncología, Hemato-oncología, Medicina interna, Dolor y cuidados paliativos, Cirugía oncológica, Cirugía de tórax, Cirugía hepatobiliar o Refuerzo');
         }
+    }
 
-        return errors;
-    };
+    return errors;
+};
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -67,6 +67,7 @@ const App = () => {
 
     // Estado para controlar el modal del calendario
     const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
+    
 
     // Datos estáticos para requerimientos legales
     const legalRequirements: LegalRequirement[] = [
@@ -623,7 +624,8 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
         {/* Información adicional */}
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
             <p className="text-blue-800">
-                <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente.
+                <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente. Recuerda que esto es una versión beta
+                por lo que no se cumplen los requerimientos legales ni los de políticas internas.
             </p>
         </div>
 

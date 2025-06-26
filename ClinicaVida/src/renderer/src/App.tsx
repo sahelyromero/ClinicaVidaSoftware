@@ -966,3 +966,4 @@ const renderMonthlyHours = () => (
 };
 
 export default App;
+

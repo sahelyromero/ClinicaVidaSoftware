@@ -487,7 +487,7 @@ const App = () => {
         return (
             <div className="p-4">
                 <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
-                
+
                 {/* Grupo Urgencias */}
                 <div className="mb-8">
                     <h3 className="text-xl font-bold mb-3 text-red-600 bg-red-50 p-3 rounded-lg">
@@ -671,8 +671,8 @@ const renderLegalRequirements = () => (
                 <div key={requirement.id} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
                     <div className="flex items-center mb-2">
                         <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            requirement.type === 'law' 
-                                ? 'bg-red-100 text-red-800' 
+                            requirement.type === 'law'
+                                ? 'bg-red-100 text-red-800'
                                 : 'bg-yellow-100 text-yellow-800'
                         }`}>
                             {requirement.type === 'law' ? 'LEY' : 'REGULACIÓN'}
@@ -683,7 +683,7 @@ const renderLegalRequirements = () => (
                 </div>
             ))}
         </div>
-        
+
         <div className="mt-6 bg-gray-100 p-4 rounded-lg">
             <h4 className="font-bold text-gray-800 mb-2">📋 Resumen de Cumplimiento</h4>
             <p className="text-sm text-gray-600">
@@ -701,8 +701,8 @@ const renderInternalPolicies = () => (
                 <div key={policy.id} className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
                     <div className="flex items-center mb-2">
                         <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            policy.category === 'schedules' 
-                                ? 'bg-blue-100 text-blue-800' 
+                            policy.category === 'schedules'
+                                ? 'bg-blue-100 text-blue-800'
                                 : policy.category === 'groups'
                                 ? 'bg-purple-100 text-purple-800'
                                 : 'bg-orange-100 text-orange-800'
@@ -717,7 +717,7 @@ const renderInternalPolicies = () => (
                 </div>
             ))}
         </div>
-        
+
         <div className="mt-6 bg-gray-100 p-4 rounded-lg">
             <h4 className="font-bold text-gray-800 mb-2">⚙️ Configuración Actual</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
@@ -741,7 +741,7 @@ const renderInternalPolicies = () => (
 const renderMonthlyHours = () => (
     <div className="p-4">
         <h2 className="text-2xl font-bold mb-4">Horas Laborales Mensuales</h2>
-        
+
         <div className="mb-6 flex items-center gap-4">
             <div>
                 <label className="block text-sm font-medium mb-1">Seleccionar Mes:</label>
@@ -787,13 +787,13 @@ const renderMonthlyHours = () => (
                                     <td className="px-4 py-2 text-green-600 font-semibold">{hours.availableHours}h</td>
                                     <td className="px-4 py-2">
                                         <span className={`px-2 py-1 rounded text-xs ${
-                                            hours.availableHours >= 160 
-                                                ? 'bg-green-100 text-green-800' 
+                                            hours.availableHours >= 160
+                                                ? 'bg-green-100 text-green-800'
                                                 : hours.availableHours >= 120
                                                 ? 'bg-yellow-100 text-yellow-800'
                                                 : 'bg-red-100 text-red-800'
                                         }`}>
-                                            {hours.availableHours >= 160 ? 'Óptimo' : 
+                                            {hours.availableHours >= 160 ? 'Óptimo' :
                                              hours.availableHours >= 120 ? 'Moderado' : 'Bajo'}
                                         </span>
                                     </td>
@@ -802,7 +802,7 @@ const renderMonthlyHours = () => (
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div className="mt-6 bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-bold text-blue-800 mb-2">📊 Resumen del Mes</h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -851,7 +851,7 @@ const renderMonthlyHours = () => (
             </div>
         )}
     </div>
-);    
+);
 
     const renderContent = () => {
         switch (activeTab) {

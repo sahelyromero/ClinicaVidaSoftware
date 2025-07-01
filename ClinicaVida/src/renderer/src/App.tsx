@@ -163,6 +163,8 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
     return errors;
 };
 
+    const [specialtyError, setSpecialtyError] = useState<string | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -180,12 +182,26 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
             validationErrors.push('La identificación solo debe contener números.');
         }
 
+        // Validad especialidad (seleccionar checkbox y especialidad valida.)
+        if (
+        doctorData.group === "hospitalización" &&
+        doctorData.hasSpecialty &&
+        (!doctorData.specialty || doctorData.specialty.trim() === "")
+        ) {
+        setSpecialtyError("Debes seleccionar una especialidad.");
+        return;
+        } else {
+        setSpecialtyError(null); // limpiar error si todo va bien
+        }
+
+
         // Validar correo electrónico
         const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
         if (!doctorData.email || !emailRegex.test(doctorData.email.trim())) {
             validationErrors.push('El correo electrónico debe tener un @ y un dominio válido como .com, .org, etc.');
         }
 
+        
         if (validationErrors.length > 0) {
             setFormErrors(validationErrors);
             return;
@@ -338,6 +354,7 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
                     handleSubmit={handleSubmit}
                     resetForm={resetForm}
                     formErrors={formErrors}
+                    specialtyError={specialtyError}
                     />
                 );
             case 'doctorsList':

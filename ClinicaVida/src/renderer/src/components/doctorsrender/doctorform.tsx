@@ -10,6 +10,8 @@ interface DoctorFormProps {
   handleSubmit: (e: React.FormEvent) => void;
   resetForm: () => void;
   formErrors: string[]; // ✅ nuevo prop para mostrar errores
+  specialtyError: string | null;
+
 }
 
 const DoctorForm: React.FC<DoctorFormProps> = ({
@@ -19,7 +21,9 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
   handleInputChange,
   handleSubmit,
   resetForm,
-  formErrors
+  formErrors,
+  specialtyError
+  
 }) => {
   return (
     <div className="doctor-form-container">
@@ -130,7 +134,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
               name="specialty"
               value={doctorData.specialty}
               onChange={handleInputChange}
-              className="input"
+              className={`input ${specialtyError ? 'border-red-500' : ''}`}
               required
               disabled={doctorData.group === 'urgencias'}
             >
@@ -144,8 +148,12 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
               <option value="Cirugía hepatobiliar">Cirugía hepatobiliar</option>
               <option value="Refuerzo">Refuerzo</option>
             </select>
+            {specialtyError && (
+              <p className="text-sm text-red-600 mt-1">{specialtyError}</p>
+            )}
           </div>
         )}
+
 
         <div className="form-actions">
           <button type="submit" className="custom-button">

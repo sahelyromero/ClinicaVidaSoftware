@@ -2,10 +2,15 @@ import { useState, useEffect } from "react";
 import Icon from "./assets/icon.png";
 import { openDB, addDoctor, getDoctors, updateDoctor, deleteDoctor, Doctor } from "./database/db";
 import './App.css';
+import DoctorForm from './components/doctorsrender/doctorform';
+import DoctorsList from './components/doctorsrender/doctorslist';
+import LegalRequirements, {LegalRequirement} from './components/doctorsrender/legalrequirements';
+import InternalPolicies, { InternalPolicy } from './components/doctorsrender/internalpolicies';
+import MonthlyHours, { MonthlyHoursData } from './components/doctorsrender/monthlyhours';
+import ShiftAssignment, { ShiftAssignment as ShiftAssignmentType } from './components/doctorsrender/shiftassignment';
 import Calendario from "./components/calendario/calendario";
 import ChildPage from "./components/calendario/ChildPage";
 import Ap from "./components/calendario/Ap";
-
 
 declare global {
     interface Window {
@@ -14,27 +19,26 @@ declare global {
     }
 
 // Tipos para las nuevas funcionalidades
-interface LegalRequirement {
-    id: string;
-    title: string;
-    description: string;
-    type: 'law' | 'regulation';
-}
-
-interface InternalPolicy {
-    id: string;
-    title: string;
-    description: string;
-    category: 'schedules' | 'groups' | 'specialties';
-}
-
-interface MonthlyHours {
-    doctorId: string;
-    doctorName: string;
-    totalHours: number;
-    availableHours: number;
-    workingDays: number;
-}
+const legalRequirements: LegalRequirement[] = [
+  {
+    id: '1',
+    title: 'Jornada Laboral Máxima',
+    description: 'Máximo 60 horas semanales de trabajo según legislación colombiana',
+    type: 'law',
+  },
+  {
+    id: '2',
+    title: 'Descanso Post Turno Nocturno',
+    description: 'Derecho a descanso después de turno nocturno',
+    type: 'law',
+  },
+  {
+    id: '3',
+    title: 'Días Festivos y Domingos',
+    description: 'Aplicar fórmula: (días del mes - (4+n)) * (44/6) para cálculo de horas',
+    type: 'regulation',
+  }
+];
 
 interface ShiftAssignment {
     doctorId: string;
@@ -61,35 +65,12 @@ const App = () => {
     const [currentDoctorId, setCurrentDoctorId] = useState<number | null>(null);
 
     // Estados para las nuevas funcionalidades
-    const [monthlyHours, setMonthlyHours] = useState<MonthlyHours[]>([]);
+    const [monthlyHours, setMonthlyHours] = useState<MonthlyHoursData[]>([]);
     const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
-    const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>([]);
+    const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignmentType[]>([]);
 
     // Estado para controlar el modal del calendario
     const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
-    
-
-    // Datos estáticos para requerimientos legales
-    const legalRequirements: LegalRequirement[] = [
-    {
-        id: '1', // Cambiar de ' ' a '1'
-        title: 'Jornada Laboral Máxima',
-        description: 'Máximo 60 horas semanales de trabajo según legislación colombiana',
-        type: 'law'
-    },
-    {
-        id: '2', // Cambiar de ' ' a '2'
-        title: 'Descanso Post Turno Nocturno',
-        description: 'Derecho a descanso después de turno nocturno',
-        type: 'law'
-    },
-    {
-        id: '3', // Cambiar de ' ' a '3'
-        title: 'Días Festivos y Domingos',
-        description: 'Aplicar fórmula: (días del mes - (4+n)) * (44/6) para cálculo de horas',
-        type: 'regulation'
-    }
-];
 
     // Datos estáticos para políticas internas
     const internalPolicies: InternalPolicy[] = [
@@ -282,34 +263,6 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
         }]);
     };
 
-    const generateShiftAssignments = () => {
-        const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-        const assignments: ShiftAssignment[] = [];
-
-        doctors.forEach(doctor => {
-            weekdays.forEach(day => {
-                let shiftType: 'C6' | 'C8' | 'C12' = 'C8';
-
-                // Aplicar reglas de negocio
-                if (doctor.specialty === 'Refuerzo') {
-                    shiftType = 'C6';
-                } else if (doctor.hasSpecialty) {
-                    shiftType = 'C8';
-                }
-
-                assignments.push({
-                    doctorId: doctor.idNumber,
-                    doctorName: doctor.name,
-                    shiftType,
-                    dayOfWeek: day,
-                    assigned: Math.random() > 0.3 // 70% probabilidad de asignación
-                });
-            });
-        });
-
-        setShiftAssignments(assignments);
-    };
-
     // Función para abrir el modal del calendario
     const handleOpenCalendarModal = () => {
         setShowCalendarModal(true);
@@ -350,499 +303,49 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
     );
 };
 
-
-
-    const renderAddDoctor = () => (
-        <div className="doctor-form-container">
-            <h2 className="text-xl font-bold mb-3">
-                {isEditing ? 'Editar Médico' : 'Agregar Médico'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="input-group">
-                    <label>Nombre Completo</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={doctorData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="input"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Número de Identificación</label>
-                    <input
-                        type="text"
-                        name="idNumber"
-                        value={doctorData.idNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="input"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Correo Electrónico</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={doctorData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="input"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Fecha de Nacimiento</label>
-                    <input
-                        type="date"
-                        name="birthDate"
-                        value={doctorData.birthDate}
-                        onChange={handleInputChange}
-                        required
-                        className="input"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Grupo de Trabajo</label>
-                    <select
-                        name="group"
-                        value={doctorData.group}
-                        onChange={handleInputChange}
-                        required
-                        className="input"
-                    >
-                        <option value="urgencias">Urgencias</option>
-                        <option value="hospitalización">Hospitalización</option>
-
-                    </select>
-                </div>
-                <div className="input-group">
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            name="hasSpecialty"
-                            checked={doctorData.hasSpecialty}
-                            onChange={handleInputChange}
-                            disabled={doctorData.group === 'urgencias'}
-                        />
-                        <span className={`ml-2 ${doctorData.group === 'urgencias' ? 'text-gray-400' : ''}`}>
-                            ¿Tiene especialidad?
-                        </span>
-                    </label>
-                    {doctorData.group === 'urgencias' && (
-                        <p className="text-sm text-gray-500 mt-1">
-                            Los médicos de urgencias no requieren especialidad
-                        </p>
-                    )}
-                </div>
-                {showSpecialtyField && (
-                <div className="input-group">
-                    <label className="block text-sm font-medium">Especialidad</label>
-                    <select
-                        name="specialty"
-                        value={doctorData.specialty}
-                        onChange={handleInputChange}
-                        className="input"
-                        required
-                        disabled={doctorData.group === 'urgencias'}
-                    >
-                        <option value="">Seleccionar especialidad</option>
-                        <option value="Oncología">Oncología</option>
-                        <option value="Hemato-oncología">Hemato-oncología</option>
-                        <option value="Medicina interna">Medicina interna</option>
-                        <option value="Dolor y cuidados paliativos">Dolor y cuidados paliativos</option>
-                        <option value="Cirugía oncológica">Cirugía oncológica</option>
-                        <option value="Cirugía de tórax">Cirugía de tórax</option>
-                        <option value="Cirugía hepatobiliar">Cirugía hepatobiliar</option>
-                        <option value="Refuerzo">Refuerzo</option>
-                    </select>
-                </div>
-            )}
-                <div className="form-actions">
-                    <button type="submit" className="custom-button">
-                        {isEditing ? 'Guardar Cambios' : 'Agregar Médico'}
-                    </button>
-                    {isEditing && (
-                        <button
-                            type="button"
-                            onClick={resetForm}
-                            className="custom-button bg-gray-500 hover:bg-gray-600"
-                        >
-                            Cancelar
-                        </button>
-                    )}
-                </div>
-            </form>
-        </div>
-    );
-
-    const renderDoctorsList = () => {
-    // Agrupar médicos por grupo principal
-        const groupedDoctors = {
-            urgencias: doctors.filter(d => d.group === 'urgencias'),
-            hospitalización: doctors.filter(d => d.group === 'hospitalización'),
-
-        };
-
-        // Subgrupar médicos de hospitalización por especialidad
-        const hospitalizationBySpecialty = groupedDoctors.hospitalización.reduce((acc, doctor) => {
-            const specialty = doctor.specialty || 'Sin especialidad';
-            if (!acc[specialty]) {
-                acc[specialty] = [];
-            }
-            acc[specialty].push(doctor);
-            return acc;
-        }, {} as Record<string, Doctor[]>);
-
-        const renderDoctorRow = (doctor: Doctor) => (
-            <tr key={doctor.id} className="border-t border-gray-200 hover:bg-gray-50">
-                <td className="px-4 py-2">{doctor.name}</td>
-                <td className="px-4 py-2">{doctor.idNumber}</td>
-                <td className="px-4 py-2">{doctor.email}</td>
-                <td className="px-4 py-2">
-                    {doctor.hasSpecialty
-                        ? `Especialista en ${doctor.specialty}`
-                        : 'Médico General'}
-                </td>
-                <td className="px-4 py-2">
-                    <button
-                        onClick={() => handleEdit(doctor)}
-                        className="custom-button text-sm px-3 py-1.5 mr-2 bg-blue-600 hover:bg-blue-700"
-                    >
-                        Editar
-                    </button>
-                    <button
-                        onClick={() => handleDelete(doctor.id!)}
-                        className="custom-button text-sm px-3 py-1.5 bg-red-600 hover:bg-red-700"
-                    >
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-        );
-
-        return (
-            <div className="doctor-list-container">
-                <h2 className="text-2xl font-bold mb-6">Lista de Médicos por Grupos</h2>
-
-                {/* Grupo Urgencias */}
-                <div className="mb-8">
-                    <h3 className="text-xl font-bold mb-3 text-red-600 bg-red-50 p-3 rounded-lg">
-                        🚨 Urgencias ({groupedDoctors.urgencias.length} médicos)
-                    </h3>
-                    {groupedDoctors.urgencias.length > 0 ? (
-                        <div className="overflow-x-auto mb-4">
-                            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                                <thead className="bg-red-100">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left">Nombre</th>
-                                        <th className="px-4 py-2 text-left">ID</th>
-                                        <th className="px-4 py-2 text-left">Email</th>
-                                        <th className="px-4 py-2 text-left">Tipo</th>
-                                        <th className="px-4 py-2 text-left">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {groupedDoctors.urgencias.map(renderDoctorRow)}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a urgencias</p>
-                    )}
-                </div>
-
-                {/* Grupo Hospitalización con subgrupos por especialidad */}
-                <div className="mb-8">
-                    <h3 className="text-xl font-bold mb-3 text-blue-600 bg-blue-50 p-3 rounded-lg">
-                        🏥 Hospitalización ({groupedDoctors.hospitalización.length} médicos)
-                    </h3>
-                    {groupedDoctors.hospitalización.length > 0 ? (
-                        <div className="ml-4">
-                            {Object.entries(hospitalizationBySpecialty).map(([specialty, doctors]) => (
-                                <div key={specialty} className="mb-6">
-                                    <h4 className="text-lg font-semibold mb-2 text-blue-700 bg-blue-25 p-2 rounded border-l-4 border-blue-400">
-                                        📋 {specialty} ({doctors.length} médicos)
-                                    </h4>
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                                            <thead className="bg-blue-100">
-                                                <tr>
-                                                    <th className="px-4 py-2 text-left">Nombre</th>
-                                                    <th className="px-4 py-2 text-left">ID</th>
-                                                    <th className="px-4 py-2 text-left">Email</th>
-                                                    <th className="px-4 py-2 text-left">Tipo</th>
-                                                    <th className="px-4 py-2 text-left">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {doctors.map(renderDoctorRow)}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 italic ml-4">No hay médicos asignados a hospitalización</p>
-                    )}
-                </div>
-
-
-
-                {/* Resumen total */}
-                <div className="bg-gray-100 p-4 rounded-lg">
-                    <h4 className="font-bold text-gray-800 mb-2">📊 Resumen Total</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center">
-                            <span className="block text-2xl font-bold text-red-600">{groupedDoctors.urgencias.length}</span>
-                            <span className="text-sm text-gray-600">Urgencias</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-2xl font-bold text-blue-600">{groupedDoctors.hospitalización.length}</span>
-                            <span className="text-sm text-gray-600">Hospitalización</span>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const renderShiftAssignment = () => (
-    <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Asignar Turnos</h2>
-        <div className="mb-4">
-            <button
-                onClick={() => window.electronAPI.openChildWindow()}
-                className="custom-button bg-green-600 hover:bg-green-700"
-            >
-                Generar Cuadro de Turnos
-            </button>
-        </div>
-
-        {/* Información adicional */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p className="text-blue-800">
-                <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente. Recuerda que esto es una versión beta
-                por lo que no se cumplen los requerimientos legales ni los de políticas internas.
-            </p>
-        </div>
-
-        {/* Mostrar las asignaciones solo si existen y NO estamos en modal */}
-        {shiftAssignments.length > 0 && (
-            <div className="mt-6">
-                <h3 className="text-lg font-bold mb-3">Asignaciones Generadas</h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="px-4 py-2 text-left">Médico</th>
-                                <th className="px-4 py-2 text-left">Día</th>
-                                <th className="px-4 py-2 text-left">Turno</th>
-                                <th className="px-4 py-2 text-left">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {shiftAssignments.slice(0, 10).map((assignment, index) => (
-                                <tr key={index} className="border-t border-gray-200">
-                                    <td className="px-4 py-2">{assignment.doctorName}</td>
-                                    <td className="px-4 py-2">{assignment.dayOfWeek}</td>
-                                    <td className="px-4 py-2">{assignment.shiftType}</td>
-                                    <td className="px-4 py-2">
-                                        <span className={`px-2 py-1 rounded text-xs ${
-                                            assignment.assigned
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {assignment.assigned ? 'Asignado' : 'Disponible'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                {shiftAssignments.length > 10 && (
-                    <p className="text-gray-500 text-sm mt-2">
-                        Mostrando 10 de {shiftAssignments.length} asignaciones
-                    </p>
-                )}
-            </div>
-        )}
-    </div>
-);
-
-const renderLegalRequirements = () => (
-    <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Requerimientos Legales</h2>
-        <div className="space-y-4">
-            {legalRequirements.map((requirement) => (
-                <div key={requirement.id} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                    <div className="flex items-center mb-2">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            requirement.type === 'law'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                            {requirement.type === 'law' ? 'LEY' : 'REGULACIÓN'}
-                        </span>
-                        <h3 className="text-lg font-bold text-blue-800 ml-3">{requirement.title}</h3>
-                    </div>
-                    <p className="text-blue-700">{requirement.description}</p>
-                </div>
-            ))}
-        </div>
-
-        <div className="mt-6 bg-gray-100 p-4 rounded-lg">
-            <h4 className="font-bold text-gray-800 mb-2">📋 Resumen de Cumplimiento</h4>
-            <p className="text-sm text-gray-600">
-                Estos requerimientos deben ser considerados al momento de asignar turnos y calcular horas laborales.
-            </p>
-        </div>
-    </div>
-);
-
-const renderInternalPolicies = () => (
-    <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Políticas Internas</h2>
-        <div className="space-y-4">
-            {internalPolicies.map((policy) => (
-                <div key={policy.id} className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-                    <div className="flex items-center mb-2">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            policy.category === 'schedules'
-                                ? 'bg-blue-100 text-blue-800'
-                                : policy.category === 'groups'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-orange-100 text-orange-800'
-                        }`}>
-                            {policy.category === 'schedules' && 'HORARIOS'}
-                            {policy.category === 'groups' && 'GRUPOS'}
-                            {policy.category === 'specialties' && 'ESPECIALIDADES'}
-                        </span>
-                        <h3 className="text-lg font-bold text-green-800 ml-3">{policy.title}</h3>
-                    </div>
-                    <p className="text-green-700">{policy.description}</p>
-                </div>
-            ))}
-        </div>
-
-        <div className="mt-6 bg-gray-100 p-4 rounded-lg">
-            <h4 className="font-bold text-gray-800 mb-2">⚙️ Configuración Actual</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                <div className="text-center">
-                    <span className="block text-xl font-bold text-purple-600">2</span>
-                    <span className="text-sm text-gray-600">Grupos Principales</span>
-                </div>
-                <div className="text-center">
-                    <span className="block text-xl font-bold text-orange-600">8</span>
-                    <span className="text-sm text-gray-600">Especialidades</span>
-                </div>
-                <div className="text-center">
-                    <span className="block text-xl font-bold text-blue-600">3</span>
-                    <span className="text-sm text-gray-600">Tipos de Turno</span>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-const renderMonthlyHours = () => (
-    <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Horas Laborales Mensuales</h2>
-
-        <div className="mb-6 flex items-center gap-4">
-            <div>
-                <label className="block text-sm font-medium mb-1">Seleccionar Mes:</label>
-                <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="input"
-                />
-            </div>
-            <button
-                onClick={calculateMonthlyHours}
-                className="custom-button bg-blue-600 hover:bg-blue-700 mt-6"
-            >
-                Calcular Horas
-            </button>
-        </div>
-
-        {monthlyHours.length > 0 && (
-            <div>
-                <h3 className="text-lg font-bold mb-3">
-                    Horas Mínimas para {new Date(selectedMonth + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                </h3>
-
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="text-center">
-                            <span className="block text-xl font-bold text-blue-600">
-                                {monthlyHours[0].workingDays}
-                            </span>
-                            <span className="text-sm text-gray-600">Días Hábiles</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-green-600">
-                                {monthlyHours[0].totalHours}h
-                            </span>
-                            <span className="text-sm text-gray-600">Horas Mínimas</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-purple-600">
-                                {Math.round(monthlyHours[0].totalHours / monthlyHours[0].workingDays * 10) / 10}h
-                            </span>
-                            <span className="text-sm text-gray-600">Horas por Día</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                    <h4 className="font-bold text-yellow-800 mb-2">📋 Detalles del Cálculo</h4>
-                    <p className="text-yellow-700 text-sm">
-                        <strong>Fórmula aplicada:</strong> (Días del mes - Domingos - Festivos) × (44 horas/6 días)
-                    </p>
-                    <p className="text-yellow-700 text-sm mt-1">
-                        <strong>Cálculo:</strong> ({new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth() + 1, 0).getDate()} días - {Math.floor(new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth() + 1, 0).getDate() / 7) + (new Date(new Date(selectedMonth + '-01').getFullYear(), new Date(selectedMonth + '-01').getMonth(), 1).getDay() === 0 ? 1 : 0)} domingos - festivos) × 7.33 horas/día
-                    </p>
-                </div>
-            </div>
-        )}
-
-        {monthlyHours.length === 0 && doctors.length > 0 && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                <p className="text-yellow-800">
-                    <strong>Información:</strong> Selecciona un mes y presiona "Calcular Horas" para ver el análisis de horas laborales.
-                </p>
-            </div>
-        )}
-
-        {doctors.length === 0 && (
-            <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
-                <p className="text-gray-600">
-                    <strong>Sin médicos:</strong> Primero debes agregar médicos al sistema para calcular las horas laborales.
-                </p>
-            </div>
-        )}
-    </div>
-);
-
     const renderContent = () => {
         switch (activeTab) {
             case 'addDoctor':
-                return renderAddDoctor();
+                return (
+                    <DoctorForm
+                    doctorData={doctorData}
+                    showSpecialtyField={showSpecialtyField}
+                    isEditing={isEditing}
+                    handleInputChange={handleInputChange}
+                    handleSubmit={handleSubmit}
+                    resetForm={resetForm}
+                    />
+                );
             case 'doctorsList':
-                return renderDoctorsList();
+                return (
+                    <DoctorsList
+                    doctors={doctors}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    />
+                );
             case 'legal':
-                return renderLegalRequirements();
+            return <LegalRequirements legalRequirements={legalRequirements} />;
             case 'policies':
-                return renderInternalPolicies();
+                return <InternalPolicies internalPolicies={internalPolicies} />;
             case 'hours':
-                return renderMonthlyHours();
+                return (
+                    <MonthlyHours
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
+                    calculateMonthlyHours={calculateMonthlyHours}
+                    monthlyHours={monthlyHours}
+                    hasDoctors={doctors.length > 0}
+                    />
+                );
             case 'assign':
-                return renderShiftAssignment();
+                return (
+                    <ShiftAssignment
+                    shiftAssignments={shiftAssignments}
+                    onGenerate={() => window.electronAPI.openChildWindow()}
+                    />
+                );
+
             default:
                 return (
                     <div className="p-4 text-center">

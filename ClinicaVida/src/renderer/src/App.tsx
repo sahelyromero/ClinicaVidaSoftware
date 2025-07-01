@@ -166,7 +166,26 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const validationErrors = validateDoctorData(doctorData);
+        const validationErrors: string[] = [];
+
+        // Validar nombre (solo letras y espacios)
+        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        if (!nameRegex.test(doctorData.name.trim())) {
+            validationErrors.push('El nombre solo debe contener letras y espacios.');
+        }
+
+        // Validar identificación (solo números)
+        const idRegex = /^\d+$/;
+        if (!idRegex.test(doctorData.idNumber.trim())) {
+            validationErrors.push('La identificación solo debe contener números.');
+        }
+
+        // Validar correo electrónico
+        const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
+        if (!doctorData.email || !emailRegex.test(doctorData.email.trim())) {
+            validationErrors.push('El correo electrónico debe tener un @ y un dominio válido como .com, .org, etc.');
+        }
+
         if (validationErrors.length > 0) {
             alert('Errores de validación:\n' + validationErrors.join('\n'));
             return;
@@ -180,7 +199,8 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
 
         resetForm();
         await loadDoctors();
-    };
+        };
+
 
     const resetForm = () => {
         setDoctorData({

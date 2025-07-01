@@ -34,6 +34,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             onChange={handleInputChange}
             required
             className="input"
+            pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$"
+            title="Solo se permiten letras"
           />
         </div>
         <div className="input-group">
@@ -45,6 +47,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             onChange={handleInputChange}
             required
             className="input"
+            pattern="^\d+$"
+            title="Solo se permiten números"
           />
         </div>
         <div className="input-group">
@@ -56,6 +60,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             onChange={handleInputChange}
             required
             className="input"
+            pattern="^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$"
+            title="Debe incluir un correo válido con @ y dominio (.com, .org, .co, etc.)"
           />
         </div>
         <div className="input-group">
@@ -82,25 +88,27 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             <option value="hospitalización">Hospitalización</option>
           </select>
         </div>
-        <div className="input-group">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="hasSpecialty"
-              checked={doctorData.hasSpecialty}
-              onChange={handleInputChange}
-              disabled={doctorData.group === 'urgencias'}
-            />
-            <span className={`ml-2 ${doctorData.group === 'urgencias' ? 'text-gray-400' : ''}`}>
-              ¿Tiene especialidad?
-            </span>
-          </label>
-          {doctorData.group === 'urgencias' && (
-            <p className="text-sm text-gray-500 mt-1">
-              Los médicos de urgencias no requieren especialidad
-            </p>
-          )}
-        </div>
+
+        {doctorData.group !== 'urgencias' && (
+          <div className="input-group">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="hasSpecialty"
+                checked={doctorData.hasSpecialty}
+                onChange={handleInputChange}
+              />
+              <span className="ml-2">¿Tiene especialidad?</span>
+            </label>
+          </div>
+        )}
+
+        {doctorData.group === 'urgencias' && (
+          <p className="text-sm text-gray-500 mt-1">
+            Los médicos de urgencias no requieren especialidad.
+          </p>
+        )}
+
         {showSpecialtyField && (
           <div className="input-group">
             <label className="block text-sm font-medium">Especialidad</label>
@@ -124,6 +132,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             </select>
           </div>
         )}
+
         <div className="form-actions">
           <button type="submit" className="custom-button">
             {isEditing ? 'Guardar Cambios' : 'Agregar Médico'}
@@ -142,4 +151,5 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
     </div>
   );
 };
+
 export default DoctorForm;

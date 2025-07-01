@@ -4,195 +4,234 @@ body {
     font-family: 'Lato', sans-serif;
     background-color: #f9eef5;
     color: #9280b6;
-    line-height: 1.6; /* Aumenta el espaciado entre líneas */
-    margin: 0; /* Elimina márgenes por defecto */
-    padding: 0; /* Elimina padding por defecto */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
-    max-width: 1200px; /* Limita el ancho máximo */
-    margin: 0 auto; /* Centra el contenedor */
-    padding: 20px; /* Espaciado interno */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .input {
     width: 100%;
     border: 1px solid #ccc;
     border-radius: 6px;
-    padding: 0.75rem; /* Aumenta el padding */
+    padding: 0.75rem;
     background: white;
     color: #22335d;
     font-family: 'Lato', sans-serif;
-    margin-bottom: 1rem; /* Espaciado entre inputs */
+    margin-bottom: 1rem;
 }
 
+.input:focus {
+    outline: none;
+    border-color: #6a5acd;
+    box-shadow: 0 0 0 2px rgba(106, 90, 205, 0.2);
+}
 
+.custom-button {
+    background-color: #3f1855;
+    color: #e5e2eb;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    font-weight: 400;
+    font-family: 'Century Gothic', sans-serif;
+    transition: background 0.2s ease, transform 0.1s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 1rem 0.5rem;
+}
 
 .custom-button:hover {
-    background-color: #1b2847;
+    background-color: #5c2378;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
     cursor: pointer;
 }
 
-/* Efecto visual al hacer clic */
 .custom-button:active {
     transform: scale(0.97);
 }
 
-/* Botón activo visualmente */
 .active-button {
-    background-color: #042d80 !important;
-    border: 2px solid #9280b6;
+    background-color: #5c2378;
+    border: 2px solid #e5e2eb;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
 }
 
-/* Estilos para el header */
 header {
-    padding: 20px; /* Espaciado interno */
-    margin-bottom: 20px; /* Espaciado inferior */
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
-/* Estilos para el footer */
 footer {
-    padding: 20px; /* Espaciado interno */
-    margin-top: auto; /* Empuja el footer hacia abajo */
+    padding: 20px;
+    margin-top: auto;
 }
 
-/* Espaciado entre elementos en el nav */
 nav button {
-    margin: 0 10px; /* Espaciado horizontal entre botones */
+    margin: 0 10px;
 }
 
-/* Espaciado entre títulos y contenido */
 h1, h2, h3 {
-    margin-bottom: 10px; /* Espaciado inferior */
+    margin-bottom: 10px;
 }
 
-/* Espaciado en tablas */
 table {
     width: 100%;
-    border-collapse: collapse; /* Elimina el espacio entre celdas */
+    border-collapse: collapse;
 }
 
 th, td {
-    padding: 12px; /* Aumenta el padding en celdas */
-    text-align: left; /* Alineación a la izquierda */
+    padding: 12px;
+    text-align: left;
 }
 
 th {
-    background-color: #f0f0f0; /* Color de fondo para encabezados */
+    background-color: #f0f0f0;
 }
 
-/* Espaciado en el contenedor principal */
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
 .main-content {
-    padding: 20px; /* Espaciado interno */
-    background-color: white; /* Fondo blanco para el contenido */
-    border-radius: 8px; /* Bordes redondeados */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra para el contenedor */
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .doctor-panel {
-    max-width: 700px;  /* Ajusta este valor según necesites */
-    margin: 0 auto;    /* Centra el panel */
-    padding: 1.5rem;   /* Reduce el padding interno */
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 1.5rem;
 }
 
 .doctor-form {
     display: grid;
-    grid-template-columns: 1fr;  /* Una sola columna */
-    gap: 1rem;         /* Espaciado entre elementos */
+    grid-template-columns: 1fr;
+    gap: 1rem;
 }
 
-/* Ajusta el tamaño de los inputs */
 .doctor-form input,
 .doctor-form select {
     padding: 0.5rem;
     width: 100%;
 }
 
-/* Botones más compactos */
 .doctor-form .button-group {
     display: flex;
-    gap: 0.5rem;       /* Espacio entre botones reducido */
+    gap: 0.5rem;
 }
 
-/* Contenedor principal del formulario */
-/* CSS para el contenedor del formulario */
 .doctor-form-container {
-    max-height: 40vh; /* Limita la altura máxima al 70% de la altura de la ventana */
-    overflow-y: auto; /* Habilita el scroll vertical */
-    padding: 20px; /* Espaciado interno */
-    background: white; /* Fondo blanco */
-    border-radius: 10px; /* Bordes redondeados */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    width: 90%; /* Ancho del contenedor */
-    max-width: 600px; /* Ancho máximo */
-    margin: 20px auto; /* Centrado */
-}
-/* Personaliza el scroll */
-.doctor-form-container::-webkit-scrollbar {
-    width: 8px;
-}
-.doctor-form-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 20px;
+    background: white;
     border-radius: 10px;
-}
-.doctor-form-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-.custom-button {
-  background: linear-gradient(to right, #6a5acd, #8a2be2); /* Degradado */
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
-  transition: all 0.2s ease-in-out;
-  padding: 0.5rem 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
 }
 
-.custom-button:hover {
-  transform: translateY(-2px); /* Efecto de profundidad */
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* Sombra más intensa al pasar el mouse */
-  background: linear-gradient(to right, #7b68ee, #9d3fe0); /* Degradado más claro */
-}
-
-.active-button {
-  background: linear-gradient(to right, #2d2757, #2a2452);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25); /* Sombra más profunda */
-  transform: translateY(-1px);
-}
-
-.custom-button {
-    background-color: #3f1855;
-    color: #e5e2eb;
-    padding: 0.6rem 1rem; /* Aumenta el padding */
-    border-radius: 12px;
-    font-weight: 600;
-    transition: background 0.2s ease, transform 0.1s ease;
-    font-family: 'Lato', sans-serif;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0.5rem; /* Espaciado entre botones */
-}
-
-.doctor-list-container {
-    max-height: 40vh; /* Limita la altura máxima al 70% de la altura de la ventana */
-    overflow-y: auto; /* Habilita el scroll vertical */
-    padding: 20px; /* Espaciado interno */
-    background: white; /* Fondo blanco */
-    border-radius: 10px; /* Bordes redondeados */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
-}
-/* Personaliza el scroll */
+.doctor-form-container::-webkit-scrollbar,
 .doctor-list-container::-webkit-scrollbar {
     width: 8px;
 }
+
+.doctor-form-container::-webkit-scrollbar-track,
 .doctor-list-container::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 10px;
 }
+
+.doctor-form-container::-webkit-scrollbar-thumb,
 .doctor-list-container::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 10px;
+}
+
+.doctor-list-container {
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeInUnblur {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.main-heading {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 2.5rem;
+  text-align: center;
+  color: #3f1855;
+  margin-top: 2rem;
+  animation: fadeInUnblur 1s ease-out forwards;
+  opacity: 0; /* para que comience oculta hasta que se aplique la animación */
+}
+
+.hero-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  animation: fadeInUnblur 1s ease-out forwards;
+  opacity: 0;
+}
+
+.hero-logo {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.15)) blur(1px);
+  animation: fadeInUnblur 1s ease-out forwards;
+  opacity: 0;
+}
+
+
+@keyframes fadeInUnblur {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.main-heading {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 2.5rem;
+  text-align: center;
+  color: #3f1855;
+  animation: fadeInUnblur 1s ease-out forwards;
+  opacity: 0;
 }

@@ -59,11 +59,11 @@ const App = () => {
         group: 'hospitalización', // Añadido grupo por defecto
         email: '' // Añadido email
     });
+    const [formErrors, setFormErrors] = useState<string[]>([]);
     const [showSpecialtyField, setShowSpecialtyField] = useState<boolean>(false);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [currentDoctorId, setCurrentDoctorId] = useState<number | null>(null);
-
     // Estados para las nuevas funcionalidades
     const [monthlyHours, setMonthlyHours] = useState<MonthlyHoursData[]>([]);
     const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -187,9 +187,12 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
         }
 
         if (validationErrors.length > 0) {
-            alert('Errores de validación:\n' + validationErrors.join('\n'));
+            setFormErrors(validationErrors);
             return;
-        }
+            } else {
+            setFormErrors([]); // Limpiar errores si pasa validación
+            }
+
 
         if (isEditing && currentDoctorId) {
             await updateDoctor({ id: currentDoctorId, ...doctorData });
@@ -334,6 +337,7 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
                     handleInputChange={handleInputChange}
                     handleSubmit={handleSubmit}
                     resetForm={resetForm}
+                    formErrors={formErrors}
                     />
                 );
             case 'doctorsList':

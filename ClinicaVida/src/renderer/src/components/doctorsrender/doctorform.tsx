@@ -9,6 +9,7 @@ interface DoctorFormProps {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   resetForm: () => void;
+  formErrors: string[]; // ✅ nuevo prop para mostrar errores
 }
 
 const DoctorForm: React.FC<DoctorFormProps> = ({
@@ -17,13 +18,26 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
   isEditing,
   handleInputChange,
   handleSubmit,
-  resetForm
+  resetForm,
+  formErrors
 }) => {
   return (
     <div className="doctor-form-container">
       <h2 className="text-xl font-bold mb-3">
         {isEditing ? 'Editar Médico' : 'Agregar Médico'}
       </h2>
+
+      {/* ✅ Mostrar errores si existen */}
+      {formErrors.length > 0 && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded mb-4">
+          <ul className="list-disc ml-5">
+            {formErrors.map((error, index) => (
+              <li key={index}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="input-group">
           <label>Nombre Completo</label>

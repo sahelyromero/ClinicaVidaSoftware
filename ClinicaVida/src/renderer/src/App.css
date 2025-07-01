@@ -235,3 +235,30 @@ table tbody tr:nth-child(even) {
   animation: fadeInUnblur 1s ease-out forwards;
   opacity: 0;
 }
+.calendar-container {
+  font-family: 'Century Gothic', sans-serif;
+  font-weight: 400;
+}
+
+/* EXCEPCIÓN: los turnos se mantienen con la fuente por defecto */
+.calendar-turno {
+  font-family: inherit;
+  font-weight: bold;
+}
+.custom-select {
+  background-color: #f9fafb; /* gris claro */
+  border: 1px solid #d1d5db; /* gris Tailwind border-gray-300 */
+  border-radius: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  color: #374151; /* text-gray-700 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: #7c3aed; /* purple-500 */
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.4);
+}
+

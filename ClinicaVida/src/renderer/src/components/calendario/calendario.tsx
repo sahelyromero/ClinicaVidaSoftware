@@ -222,16 +222,16 @@ const Calendario: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-4">
+    <div className="flex-1 overflow-auto p-4 calendar-container">
       <div className="mb-4 flex items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold">Calendario de Turnos - {monthTitle}</h2>
         <div className="flex gap-2">
-          <select value={selectedMonth} onChange={handleMonthChange} className="border rounded px-2 py-1 text-sm">
+          <select value={selectedMonth} onChange={handleMonthChange} className="custom-select">
             {monthNames.map((month, index) => (
               <option key={index} value={index}>{month}</option>
             ))}
           </select>
-          <select value={selectedYear} onChange={handleYearChange} className="border rounded px-2 py-1 text-sm">
+          <select value={selectedYear} onChange={handleYearChange} className="custom-select">
             {generateYearOptions().map(year => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -239,7 +239,7 @@ const Calendario: React.FC = () => {
         </div>
         <button
           onClick={reloadDoctors}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          className="custom-button"
           disabled={loading}
         >
           {loading ? 'Cargando...' : 'Recargar'}
@@ -316,7 +316,7 @@ const Calendario: React.FC = () => {
                         borderColor: '#374151',
                         borderWidth: '1px'
                       }}>
-                        <span className="text-xs font-semibold" style={{
+                        <span className="text-xs font-semibold calendar-turno" style={{
                           color: turno ? (weekend ? '#dc2626' : '#1d4ed8') : '#000000'
                         }}>
                           {turno || ''}

@@ -48,12 +48,12 @@ export const asignarTurnosHospitalizacion = (
       return medico;
     }
 
-    // Copiar turnos existentes
+    const turnoAsignado = medico.especialidad.toLowerCase() === 'refuerzo' ? 'C6' : 'C8';
+
     const turnosActualizados: Turno = { ...medico.turnos };
 
-    // Asignar "C8" en todos los días hábiles
     diasLV.forEach((dia) => {
-      turnosActualizados[dia] = 'C8';
+      turnosActualizados[dia] = turnoAsignado;
     });
 
     return {

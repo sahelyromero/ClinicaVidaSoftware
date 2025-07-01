@@ -377,12 +377,11 @@ const validateDoctorData = (data: Omit<Doctor, 'id'>): string[] => {
     return (
         <div className="min-h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6]">
             <div className="container mx-auto px-4 flex-grow">
-                <div className="flex justify-center mt-6 mb-8">
-                    <img width="200px" height="200px" src={Icon} alt="Logo" className="rounded-full shadow-lg" />
-                </div>
-
+        <div className="hero-container">
+            <img src={Icon} alt="Logo" className="hero-logo" />
+            </div>
                 <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-8">
-                    <h1 className="text-xl font-bold text-center mb-4">Organizador de Turnos Médicos</h1>
+                    <h1 className="main-heading">Organizador de turnos médicos</h1>
                     <nav className="flex flex-wrap justify-center gap-3">
                         <button
                             onClick={() => handleNavClick('dashboard')}

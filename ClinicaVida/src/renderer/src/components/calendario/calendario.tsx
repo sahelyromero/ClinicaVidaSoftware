@@ -75,18 +75,23 @@ type Medico = {
 
 const especialidadColor = (especialidad: string) => {
   const colores: { [key: string]: string } = {
-    'Hematología': '#f8caca',
-    'Medicina Interna': '#c8f8c8',
+    'Hemato-oncología': '#f8caca',
+    'Refuerzo': '#c8f8c8',
     'Oncología': '#c8e0f8',
-    'DYCP': '#e5c8f8',
-    'Cirugía': '#c8f8f2',
+    'Medicina interna': '#e5c8f8',
+    'Cirugía hepatobiliar': '#c8f8f2',
     'Urgencias': '#ffd4cc',
-    'Hospitalización': '#d4f4dd',
+    'Dolor y cuidados paliativos': '#d4f4dd',
     'Cardiología': '#e6f3ff',
     'Neurología': '#f0e6ff',
     'Pediatría': '#fff2cc'
   };
-  return colores[especialidad] || '#f5f5f5';
+  if (!especialidad) {
+    return '#ffd4cc'; // Color por defecto si no hay especialidad
+  }
+  else {
+    return colores[especialidad] || '#f5f5f5';
+  }
 };
 
 const convertDoctorToMedico = (doctor: Doctor): Medico => {
@@ -224,14 +229,14 @@ const Calendario: React.FC = () => {
   return (
     <div className="flex-1 overflow-auto p-4 calendar-container">
       <div className="mb-4 flex items-center gap-4 flex-wrap">
-        <h2 className="text-xl font-semibold">Calendario de Turnos - {monthTitle}</h2>
+        <h2 className="text-lg font-semibold">Calendario de Turnos - {monthTitle}</h2>
         <div className="flex gap-2">
-          <select value={selectedMonth} onChange={handleMonthChange} className="custom-select">
+          <select value={selectedMonth} onChange={handleMonthChange} className="custom-select text-sm">
             {monthNames.map((month, index) => (
               <option key={index} value={index}>{month}</option>
             ))}
           </select>
-          <select value={selectedYear} onChange={handleYearChange} className="custom-select">
+          <select value={selectedYear} onChange={handleYearChange} className="custom-select text-sm">
             {generateYearOptions().map(year => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -239,7 +244,7 @@ const Calendario: React.FC = () => {
         </div>
         <button
           onClick={reloadDoctors}
-          className="custom-button"
+          className="custom-button text-sm"
           disabled={loading}
         >
           {loading ? 'Cargando...' : 'Recargar'}
@@ -247,12 +252,12 @@ const Calendario: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
+        <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
           {error}
         </div>
       )}
 
-      <div className="mb-4 text-sm text-gray-600">
+      <div className="mb-4 text-xs text-gray-600">
         <p>Días en {monthNames[selectedMonth].toLowerCase()}: <strong>{diasMes}</strong></p>
         <p>Médicos registrados: <strong>{medicos.length}</strong></p>
         {medicos.length === 0 && (
@@ -262,27 +267,30 @@ const Calendario: React.FC = () => {
         )}
       </div>
 
-      <div className="border rounded-lg overflow-auto">
-        <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+      {/* Contenedor con altura y ancho fijos y scrollbar */}
+      <div className="border rounded-lg" style={{ height: '500px', width: '1800px', overflowY: 'auto', overflowX: 'auto' }}>
+        <table className="text-xs" style={{ borderCollapse: 'collapse', width: 'max-content' }}>
           <thead>
             <tr className="sticky top-0 z-10" style={{ backgroundColor: '#e5e7eb' }}>
-              <th className="border px-2 sticky left-0 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>#</th>
-              <th className="border px-2 sticky left-8 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Nombre</th>
-              <th className="border px-2 sticky left-8 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Tipo</th>
-              <th className="border px-2 sticky left-32 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Especialidad</th>
+              <th className="border px-1 py-1 sticky left-0 z-20 text-xs" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151', minWidth: '30px', width: '30px' }}>#</th>
+              <th className="border px-1 py-1 sticky left-8 z-20 text-xs" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151', minWidth: '120px', width: '175px', left: '30px' }}>Nombre</th>
+              <th className="border px-1 py-1 sticky left-8 z-20 text-xs" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151', minWidth: '80px', width: '80px', left: '150px' }}>Tipo</th>
+              <th className="border px-1 py-1 sticky left-32 z-20 text-xs" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151', minWidth: '100px', width: '100px', left: '230px' }}>Especialidad</th>
               {[...Array(diasMes)].map((_, i) => {
                 const day = i + 1;
                 const dayAbb = getDayAbbreviation(day);
                 const weekend = isWeekend(day);
                 return (
-                  <th key={day} className="border px-1 py-1 sticky top-0 z-10 min-w-[40px]" style={{
+                  <th key={day} className="border px-1 py-1 sticky top-0 z-10" style={{
                     backgroundColor: '#e5e7eb',
                     borderColor: '#374151',
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    minWidth: '42px',
+                    maxWidth: '42px'
                   }}>
                     <div className="flex flex-col items-center justify-center">
                       <div className={`text-xs leading-tight ${weekend ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{dayAbb}</div>
-                      <div className={`text-sm font-semibold leading-tight ${weekend ? 'text-red-600' : 'text-gray-800'}`}>{day}</div>
+                      <div className={`text-xs font-semibold leading-tight ${weekend ? 'text-red-600' : 'text-gray-800'}`}>{day}</div>
                     </div>
                   </th>
                 );
@@ -292,23 +300,26 @@ const Calendario: React.FC = () => {
           <tbody>
             {medicos.length === 0 ? (
               <tr>
-                <td colSpan={diasMes + 3} className="border px-4 py-8 text-center text-gray-500">
+                <td colSpan={diasMes + 4} className="border px-4 py-8 text-center text-gray-500 text-sm">
                   No hay médicos registrados en la base de datos
                 </td>
               </tr>
             ) : (
               medicos.map((medico, index) => (
-                <tr key={index}>
-                  <td className="border px-2 sticky left-0 z-10 font-semibold" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>{index + 1}</td>
-                  <td className="border px-2 sticky left-8 z-10 font-medium" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>{medico.nombre}</td>
-                  <td className="border px-2 sticky left-8 z-10 font-medium" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>
+                <tr key={index} style={{ height: '35px' }}>
+                  <td className="border px-1 py-1 sticky left-0 z-10 font-semibold text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '30px', width: '30px' }}>{index + 1}</td>
+                  <td className="border px-1 py-1 sticky left-8 z-10 font-medium text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '120px', width: '120px', left: '30px' }}>{medico.nombre}</td>
+                  <td className="border px-1 py-1 sticky left-8 z-10 font-medium text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '80px', width: '80px', left: '150px' }}>
                       {medico.grupo
                         ? medico.grupo.charAt(0).toUpperCase() + medico.grupo.slice(1)
                         : ''}
                   </td>
-                  <td className="border px-2 sticky left-32 z-10 text-xs" style={{
+                  <td className="border px-1 py-1 sticky left-32 z-10 text-xs" style={{
                     backgroundColor: especialidadColor(medico.especialidad),
-                    borderColor: '#374151'
+                    borderColor: '#374151',
+                    minWidth: '100px',
+                    width: '100px',
+                    left: '230px'
                   }}>
                     {medico.especialidad.charAt(0).toUpperCase() + medico.especialidad.slice(1)}
                   </td>
@@ -317,10 +328,12 @@ const Calendario: React.FC = () => {
                     const turno = medico.turnos[day];
                     const weekend = isWeekend(day);
                     return (
-                      <td key={day} className="border text-center px-1" style={{
+                      <td key={day} className="border text-center px-1 py-1" style={{
                         backgroundColor: '#ffffff',
                         borderColor: '#374151',
-                        borderWidth: '1px'
+                        borderWidth: '1px',
+                        minWidth: '42px',
+                        maxWidth: '42px'
                       }}>
                         <span className="text-xs font-semibold calendar-turno" style={{
                           color: turno ? (weekend ? '#dc2626' : '#1d4ed8') : '#000000'

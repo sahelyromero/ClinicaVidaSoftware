@@ -243,7 +243,7 @@ const Calendario: React.FC = () => {
           disabled={loading}
         >
           {loading ? 'Cargando...' : 'Recargar'}
-        </button>        
+        </button>
       </div>
 
       {error && (
@@ -268,6 +268,7 @@ const Calendario: React.FC = () => {
             <tr className="sticky top-0 z-10" style={{ backgroundColor: '#e5e7eb' }}>
               <th className="border px-2 sticky left-0 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>#</th>
               <th className="border px-2 sticky left-8 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Nombre</th>
+              <th className="border px-2 sticky left-8 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Tipo</th>
               <th className="border px-2 sticky left-32 z-20" style={{ backgroundColor: '#e5e7eb', borderColor: '#374151' }}>Especialidad</th>
               {[...Array(diasMes)].map((_, i) => {
                 const day = i + 1;
@@ -300,6 +301,11 @@ const Calendario: React.FC = () => {
                 <tr key={index}>
                   <td className="border px-2 sticky left-0 z-10 font-semibold" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>{index + 1}</td>
                   <td className="border px-2 sticky left-8 z-10 font-medium" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>{medico.nombre}</td>
+                  <td className="border px-2 sticky left-8 z-10 font-medium" style={{ backgroundColor: '#ffffff', borderColor: '#374151' }}>
+                      {medico.grupo
+                        ? medico.grupo.charAt(0).toUpperCase() + medico.grupo.slice(1)
+                        : ''}
+                  </td>
                   <td className="border px-2 sticky left-32 z-10 text-xs" style={{
                     backgroundColor: especialidadColor(medico.especialidad),
                     borderColor: '#374151'

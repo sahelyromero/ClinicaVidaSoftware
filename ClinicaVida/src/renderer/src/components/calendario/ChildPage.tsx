@@ -9,7 +9,7 @@ export default function ChildPage(): JSX.Element {
 
   return (
     <>
-      <div className="min-h-screen bg-white p-6">
+      <div className="min-h-screen bg-white p-6 overflow-y-auto max-h-screen">
         <h1 className="text-2xl font-bold text-indigo-700 mb-4">Calendario de Turnos</h1>
         <Calendario />
       </div>

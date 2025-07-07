@@ -1,40 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { asignarTurnosHospitalizacion } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
+import React, { useState, useEffect } from 'react'
+import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
 
 // Tipos de la base de datos
 interface Doctor {
-  id?: number;
-  name: string;
-  idNumber: string;
-  birthDate: string;
-  hasSpecialty: boolean;
-  specialty?: string;
-  group?: 'urgencias' | 'hospitalización' | 'refuerzo';
-  email?: string;
+  id?: number
+  name: string
+  idNumber: string
+  birthDate: string
+  hasSpecialty: boolean
+  specialty?: string
+  group?: 'urgencias' | 'hospitalización' | 'refuerzo'
+  email?: string
+  horasTrabajadas: number
 }
 
-const DB_NAME = 'ClinicaVidaDB';
-const DB_VERSION = 2;
-const STORE_NAME = 'doctors';
+const DB_NAME = 'ClinicaVidaDB'
+const DB_VERSION = 2
+const STORE_NAME = 'doctors'
 
-let dbInstance: IDBDatabase | null = null;
+let dbInstance: IDBDatabase | null = null
 
 const openDB = async (): Promise<IDBDatabase> => {
-  if (dbInstance) return dbInstance;
+  if (dbInstance) return dbInstance
 
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error)
     request.onsuccess = () => {
-      dbInstance = request.result;
-      resolve(request.result);
-    };
+      dbInstance = request.result
+      resolve(request.result)
+    }
     request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
+      const db = (event.target as IDBOpenDBRequest).result
 
       if (db.objectStoreNames.contains(STORE_NAME)) {
-        db.deleteObjectStore(STORE_NAME);
+        db.deleteObjectStore(STORE_NAME)
       }
 
       const store = db.createObjectStore(STORE_NAME, {
@@ -64,14 +65,15 @@ const getDoctors = async (): Promise<Doctor[]> => {
 };
 
 // Tipos originales del calendario
-type Turno = { [dia: number]: string };
+type Turno = { [dia: number]: string }
 
 type Medico = {
-  nombre: string;
-  especialidad: string;
-  turnos: Turno;
-  grupo?: 'hospitalización' | 'urgencias' | 'refuerzo';
-};
+  nombre: string
+  especialidad: string
+  turnos: Turno
+  grupo?: 'hospitalización' | 'urgencias' | 'refuerzo'
+  horasTrabajadas: number
+}
 
 const especialidadColor = (especialidad: string) => {
   const colores: { [key: string]: string } = {
@@ -99,7 +101,8 @@ const convertDoctorToMedico = (doctor: Doctor): Medico => {
     nombre: doctor.name,
     especialidad: doctor.specialty || doctor.group || 'General',
     turnos: {},
-    grupo: doctor.group
+    grupo: doctor.group,
+    horasTrabajadas: doctor.horasTrabajadas || 0
   };
 };
 
@@ -118,48 +121,67 @@ const Calendario: React.FC = () => {
 
   const dayAbbreviations = ['D', 'L', 'M', 'Mi', 'J', 'V', 'S'];
 
-  useEffect(() => {
-    const loadDoctors = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+useEffect(() => {
+  const loadDoctors = async () => {
+try {
+  setLoading(true);
+  setError(null);
 
-        const doctors = await getDoctors();
-        const medicosFromDB = doctors.map(convertDoctorToMedico);
+    const doctors = await getDoctors()
+    const medicosFromDB = doctors.map(convertDoctorToMedico);
 
-        if (medicosFromDB.length === 0) {
-          const ejemploMedicos: Medico[] = [
-            {
-              nombre: 'Dr. Ejemplo',
-              especialidad: 'General',
-              turnos: { 1: 'C8', 15: 'C10' }
-            }
-          ];
-          setMedicos(ejemploMedicos);
-        } else {
-          const medicosConTurnos = asignarTurnosHospitalizacion(
-            medicosFromDB,
-            selectedMonth,
-            selectedYear
-          );
-          setMedicos(medicosConTurnos);
+    if (medicosFromDB.length === 0) {
+      const ejemploMedicos: Medico[] = [
+        {
+          nombre: 'Dr. Ejemplo',
+          especialidad: 'General',
+          turnos: { 1: 'C8', 15: 'C10' }
         }
-      } catch (err) {
-        console.error('Error al cargar médicos:', err);
-        setError('Error al cargar los médicos de la base de datos');
+      ];
+      setMedicos(ejemploMedicos);
+    } else {
+      // Separar médicos por grupo
+      const medicosHospitalizacion = medicosFromDB.filter((m) => m.grupo === 'hospitalización');
+      const medicosUrgencias = medicosFromDB.filter(m => m.grupo === 'urgencias');
+      const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
 
-        const ejemploMedicos: Medico[] = [
-          {
-            nombre: 'Error - Datos de ejemplo',
-            especialidad: 'General',
-            turnos: {}
-          }
-        ];
-        setMedicos(ejemploMedicos);
-      } finally {
-        setLoading(false);
+      // Asignar turnos por separado
+      const medicosHospConTurnos = medicosHospitalizacion.length > 0
+        ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
+        : [];
+
+      const medicosUrgConTurnos = medicosUrgencias.length > 0
+        ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)
+        : [];
+
+      // Los otros médicos sin turnos asignados
+      const medicosOtrosConTurnos = medicosOtros.map(medico => ({ ...medico, turnos: {} }));
+
+      // Combinar todos los médicos en una sola llamada a setMedicos
+      const todosMedicos = [
+        ...medicosHospConTurnos,
+        ...medicosUrgConTurnos,
+        ...medicosOtrosConTurnos
+      ];
+
+      setMedicos(todosMedicos); // ¡Solo una llamada!
+    }
+  } catch (err) {
+    console.error('Error al cargar médicos:', err);
+    setError('Error al cargar los médicos de la base de datos');
+
+    const ejemploMedicos: Medico[] = [
+      {
+        nombre: 'Error - Datos de ejemplo',
+        especialidad: 'General',
+        turnos: {}
       }
-    };
+    ];
+    setMedicos(ejemploMedicos);
+  } finally {
+    setLoading(false);
+  }
+};
 
     loadDoctors();
   }, [selectedMonth, selectedYear]); // 👈 Dependencias para recalcular turnos al cambiar mes/año

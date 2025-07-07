@@ -1,36 +1,36 @@
 // database/db.ts
 export interface Doctor {
-    id?: number;
-    name: string;
-    idNumber: string;
-    birthDate: string;
-    hasSpecialty: boolean;
-    specialty?: string;
-    group?: 'urgencias' | 'hospitalización' | 'refuerzo';
-    email?: string;
-    horasTrabajadas: number;
+  id?: number
+  name: string
+  idNumber: string
+  birthDate: string
+  hasSpecialty: boolean
+  specialty?: string
+  group?: 'urgencias' | 'hospitalización' | 'refuerzo'
+  email?: string
+  horasTrabajadas: number
 }
 
-const DB_NAME = 'ClinicaVidaDB';
-const DB_VERSION = 2;
-const STORE_NAME = 'doctors';
+const DB_NAME = 'ClinicaVidaDB'
+const DB_VERSION = 2
+const STORE_NAME = 'doctors'
 
-let dbInstance: IDBDatabase | null = null;
+let dbInstance: IDBDatabase | null = null
 
 export const openDB = async (): Promise<IDBDatabase> => {
-    if (dbInstance) {
-        return dbInstance;
+  if (dbInstance) {
+    return dbInstance
+  }
+
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+    request.onerror = () => reject(request.error)
+
+    request.onsuccess = () => {
+      dbInstance = request.result
+      resolve(request.result)
     }
-
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-        request.onerror = () => reject(request.error);
-
-        request.onsuccess = () => {
-            dbInstance = request.result;
-            resolve(request.result);
-        };
 
         request.onupgradeneeded = (event) => {
             const db = (event.target as IDBOpenDBRequest).result;

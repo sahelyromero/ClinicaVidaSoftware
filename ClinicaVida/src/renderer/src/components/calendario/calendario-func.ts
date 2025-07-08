@@ -176,7 +176,7 @@ export const asignarTurnosUrgencias = (
   medicos: Medico[],
   mes: number,
   año: number,
-  horasMaximasMes: number = 191, // Cambiar por la función que lo calcula automáticamente
+  horasMaximasMes: number = 191, // Cambiar por la función que lo calcula automáticamente.
   horasTurnoDia: number = 12,
   horasTurnoNoche: number = 12
 ): Medico[] => {

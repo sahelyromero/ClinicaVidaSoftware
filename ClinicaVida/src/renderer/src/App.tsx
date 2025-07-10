@@ -220,71 +220,40 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6] overflow-y-auto">
-      <div className="container mx-auto px-4 py-2 flex-grow">
+    <div className="min-h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6] overflow-y-auto">
+      <div className="w-full px-4 py-2 flex-grow">
         {/* Header compacto */}
         <div className="hero-container mb-4">
           <img src={Icon} alt="Logo" className="hero-logo" />
         </div>
 
-        <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-4">
-          <h1 className="main-heading mb-4">Organizador de turnos médicos</h1>
+        <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-4 overflow-x-auto">
+        <h1 className="main-heading mb-4">Organizador de turnos médicos</h1>
 
-          {/* Navegación mejorada con grid responsivo */}
-          <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2">
-            <button
-              onClick={() => handleNavClick('dashboard')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'dashboard' ? 'active-button' : ''}`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => handleNavClick('addDoctor')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'addDoctor' ? 'active-button' : ''}`}
-            >
-              Agregar Médico
-            </button>
-            <button
-              onClick={() => handleNavClick('doctorsList')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'doctorsList' ? 'active-button' : ''}`}
-            >
-              Lista de Médicos
-            </button>
-            <button
-              onClick={() => handleNavClick('assign')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'assign' ? 'active-button' : ''}`}
-            >
-              Evento Especial
-            </button>
-            <button
-              onClick={() => handleNavClick('hours')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'hours' ? 'active-button' : ''}`}
-            >
-              Horas Laborales
-            </button>
-            <button
-              onClick={() => handleNavClick('assign')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'assign' ? 'active-button' : ''}`}
-            >
-              Asignar Turnos
-            </button>
-            <button
-              onClick={() => handleNavClick('legal')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'legal' ? 'active-button' : ''}`}
-            >
-              Requerimientos Legales
-            </button>
-            <button
-              onClick={() => handleNavClick('policies')}
-              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'policies' ? 'active-button' : ''}`}
-            >
-              Políticas Internas
-            </button>
+        <nav className="flex gap-1 overflow-x-auto whitespace-nowrap flex-nowrap w-full">
+            {[
+              ['dashboard', 'Dashboard'],
+              ['addDoctor', 'Agregar Médico'],
+              ['doctorsList', 'Lista de Médicos'],
+              ['assign', 'Evento Especial'],
+              ['hours', 'Horas Laborales'],
+              ['assign', 'Asignar Turnos'],
+              ['legal', 'Requerimientos Legales'],
+              ['policies', 'Políticas Internas']
+            ].map(([tab, label]) => (
+              <button
+                key={tab}
+                onClick={() => handleNavClick(tab)}
+                className={`custom-button text-[0.65rem] px-1.5 py-1 whitespace-nowrap min-w-fit shrink-0 ${activeTab === tab ? 'active-button' : ''}`}
+              >
+                {label}
+              </button>
+            ))}
           </nav>
         </header>
 
         {/* Contenido principal */}
-        <main className="main-content bg-white rounded-xl shadow-md p-6 mb-4 flex-grow overflow-auto">
+        <main className="main-content bg-white rounded-xl shadow-md p-6 mb-4 flex-grow">
           {renderContent()}
         </main>
       </div>

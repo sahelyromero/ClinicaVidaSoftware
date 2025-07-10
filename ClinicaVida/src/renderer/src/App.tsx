@@ -93,7 +93,6 @@ const App = () => {
         }
      }
 
-
     const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
     if (!doctorData.email || !emailRegex.test(doctorData.email.trim())) validationErrors.push('El correo electrónico debe tener un @ y un dominio válido como .com, .org, etc.');
 
@@ -195,8 +194,7 @@ const App = () => {
       case 'hours':
         return <MonthlyHours selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} calculateMonthlyHours={calculateMonthlyHours} monthlyHours={monthlyHours} hasDoctors={doctors.length > 0} />;
       case 'assign':
-        return <ShiftAssignment shiftAssignments={shiftAssignments} onGenerate={() => window.electronAPI.openChildWindow()}
- />;
+        return <ShiftAssignment shiftAssignments={shiftAssignments} onGenerate={() => window.electronAPI.openChildWindow()} />;
       default:
         return (
           <div className="p-4 text-center">
@@ -222,32 +220,80 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6]">
-      <div className="container mx-auto px-4 flex-grow overflow-hidden">
-        <div className="hero-container">
+    <div className="h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6] overflow-y-auto">
+      <div className="container mx-auto px-4 py-2 flex-grow">
+        {/* Header compacto */}
+        <div className="hero-container mb-4">
           <img src={Icon} alt="Logo" className="hero-logo" />
         </div>
-        <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-8">
-          <h1 className="main-heading">Organizador de turnos médicos</h1>
-          <nav className="flex flex-nowrap justify-start gap-2 overflow-x-auto pb-2">
-            <button onClick={() => handleNavClick('dashboard')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'dashboard' ? 'active-button' : ''}`}>Dashboard</button>
-            <button onClick={() => handleNavClick('addDoctor')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'addDoctor' ? 'active-button' : ''}`}>Agregar Médico</button>
-            <button onClick={() => handleNavClick('doctorsList')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'doctorsList' ? 'active-button' : ''}`}>Lista de Médicos</button>
-            <button onClick={() => handleNavClick('assign')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'assign' ? 'active-button' : ''}`}>Evento Especial</button>
-            <button onClick={() => handleNavClick('hours')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'hours' ? 'active-button' : ''}`}>Horas Laborales</button>
-            <button onClick={() => handleNavClick('assign')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'assign' ? 'active-button' : ''}`}>Asignar Turnos</button>
-            <button onClick={() => handleNavClick('legal')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'legal' ? 'active-button' : ''}`}>Requerimientos Legales</button>
-            <button onClick={() => handleNavClick('policies')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'policies' ? 'active-button' : ''}`}>Políticas Internas</button>
+
+        <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-4">
+          <h1 className="main-heading mb-4">Organizador de turnos médicos</h1>
+
+          {/* Navegación mejorada con grid responsivo */}
+          <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2">
+            <button
+              onClick={() => handleNavClick('dashboard')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'dashboard' ? 'active-button' : ''}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => handleNavClick('addDoctor')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'addDoctor' ? 'active-button' : ''}`}
+            >
+              Agregar Médico
+            </button>
+            <button
+              onClick={() => handleNavClick('doctorsList')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'doctorsList' ? 'active-button' : ''}`}
+            >
+              Lista de Médicos
+            </button>
+            <button
+              onClick={() => handleNavClick('assign')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'assign' ? 'active-button' : ''}`}
+            >
+              Evento Especial
+            </button>
+            <button
+              onClick={() => handleNavClick('hours')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'hours' ? 'active-button' : ''}`}
+            >
+              Horas Laborales
+            </button>
+            <button
+              onClick={() => handleNavClick('assign')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'assign' ? 'active-button' : ''}`}
+            >
+              Asignar Turnos
+            </button>
+            <button
+              onClick={() => handleNavClick('legal')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'legal' ? 'active-button' : ''}`}
+            >
+              Requerimientos Legales
+            </button>
+            <button
+              onClick={() => handleNavClick('policies')}
+              className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap ${activeTab === 'policies' ? 'active-button' : ''}`}
+            >
+              Políticas Internas
+            </button>
           </nav>
         </header>
-        <main className="main-content bg-white rounded-xl shadow-md p-6 mb-8 overflow-auto h-full">
-        {renderContent()}
-        </main>
 
+        {/* Contenido principal */}
+        <main className="main-content bg-white rounded-xl shadow-md p-6 mb-4 flex-grow overflow-auto">
+          {renderContent()}
+        </main>
       </div>
-      <footer className="bg-[#22335d] text-[#9280b6] text-center p-4 mt-auto">
+
+      {/* Footer */}
+      <footer className="bg-[#22335d] text-[#9280b6] text-center p-4 flex-shrink-0">
         <p className="text-sm">© {new Date().getFullYear()} Grupo 2.1 - Ingeniería de Software 2025-1 - Universidad Nacional de Colombia Sede Medellín</p>
       </footer>
+
       <CalendarModal show={showCalendarModal} onClose={handleCloseCalendarModal} />
     </div>
   );

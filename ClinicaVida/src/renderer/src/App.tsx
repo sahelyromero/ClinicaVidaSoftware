@@ -137,24 +137,48 @@ const App = () => {
     }
   };
 
-  const calculateMonthlyHours = () => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const colombianHolidays = { 1: [1, 6], 3: [24], 4: [17, 18], 5: [1], 6: [2, 23, 30], 7: [20], 8: [7, 18], 10: [13], 11: [3, 17], 12: [8, 25] };
-
-    let sundays = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month - 1, day);
-      if (date.getDay() === 0) sundays++;
+  const calculateMonthlyHours = (): void => {
+    const [year, month] = selectedMonth.split('-').map(Number)
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const colombianHolidays = {
+      1: [1, 6],
+      3: [24],
+      4: [17, 18],
+      5: [1],
+      6: [2, 23, 30],
+      7: [20],
+      8: [7, 18],
+      10: [13],
+      11: [3, 17],
+      12: [8, 25]
     }
 
-    const holidaysInMonth = colombianHolidays[month] || [];
-    const holidays = holidaysInMonth.length;
-    const workingDays = daysInMonth - sundays - holidays;
-    const minimumHours = Math.round(workingDays * (44 / 6));
+    let sundays = 0
+    let holidays = 0
+    let holidaysOnSunday = 0
 
-    setMonthlyHours([{ doctorId: 'system', doctorName: 'Horas Mínimas del Mes', totalHours: minimumHours, availableHours: workingDays, workingDays }]);
-  };
+    const holidaysInMonth = colombianHolidays[month] || []
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day)
+      const isSunday = date.getDay() === 0
+      const isHoliday = holidaysInMonth.includes(day)
+
+      if (isSunday) sundays++
+      if (isHoliday) holidays++
+      if (isSunday && isHoliday) holidaysOnSunday++
+    }
+
+    const workingDays = daysInMonth - sundays - holidays + holidaysOnSunday
+    const minimumHours = Math.round(workingDays * (44 / 6))
+
+    setMonthlyHours([{doctorId: 'system',
+        doctorName: 'Horas Mínimas del Mes',
+        totalHours: minimumHours,
+        availableHours: workingDays,
+        workingDays
+      }])
+  }
 
   const handleOpenCalendarModal = () => setShowCalendarModal(true);
   const handleCloseCalendarModal = () => setShowCalendarModal(false);

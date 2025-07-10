@@ -10,7 +10,6 @@ import MonthlyHours, { MonthlyHoursData } from './components/doctorsrender/month
 import ShiftAssignment, { ShiftAssignment as ShiftAssignmentType } from './components/doctorsrender/shiftassignment';
 import CalendarModal from './components/calendario/calendarmodal';
 
-
 declare global {
   interface Window {
     electronAPI: { openChildWindow: () => void };
@@ -243,8 +242,6 @@ const App = () => {
         <main className="main-content bg-white rounded-xl shadow-md p-6 mb-8 overflow-auto h-full">
         {renderContent()}
         </main>
-
-
 
       </div>
       <footer className="bg-[#22335d] text-[#9280b6] text-center p-4 mt-auto">

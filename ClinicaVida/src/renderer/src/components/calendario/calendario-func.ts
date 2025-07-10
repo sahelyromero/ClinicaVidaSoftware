@@ -1,3 +1,4 @@
+import { calculateMonthlyHours } from './calendarioAux'
 // calendario-func.ts
 
 // Tipos necesarios
@@ -176,19 +177,13 @@ export const asignarTurnosUrgencias = (
   medicos: Medico[],
   mes: number,
   año: number,
-  horasMaximasMes: number = 191, // Cambiar por la función que lo calcula automáticamente.
+  horasMaximasMes: number = calculateMonthlyHours(mes, año),
   horasTurnoDia: number = 12,
   horasTurnoNoche: number = 12
 ): Medico[] => {
   const todosDias = getTodosDiasMes(mes, año)
   const medicosUrgencias = medicos.filter(medico => medico.grupo === 'urgencias')
   const medicosSinUrgencias = medicos.filter(medico => medico.grupo !== 'urgencias')
-
-  // Verificar que hay suficientes médicos
-  if (medicosUrgencias.length < 8) {
-    console.error(`Se necesitan al menos 8 médicos de urgencias. Solo hay ${medicosUrgencias.length}`)
-    return medicos
-  }
 
   // Inicializar médicos con turnos limpios
   const medicosConTurnos = medicosUrgencias.map(medico => ({

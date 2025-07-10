@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
-
+import { calculateMonthlyHours } from './calendarioAux'; // IMPORTACIÓN DE LA FUNCIÓN PARA CALCULAR HORAS MENSUALES
 // Tipos de la base de datos
 interface Doctor {
   id?: number
@@ -218,23 +218,7 @@ try {
     return years;
   };
 
-
-  // Función para recargar médicos
-  const reloadDoctors = async () => {
-    try {
-      setLoading(true);
-      const doctors = await getDoctors();
-      const medicosFromDB = doctors.map(convertDoctorToMedico);
-      setMedicos(medicosFromDB);
-      setError(null);
-    } catch (err) {
-      console.error('Error al recargar médicos:', err);
-      setError('Error al recargar los médicos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+ // Función para recargar médicos
   if (loading) {
     return (
       <div className="flex-1 overflow-auto p-4">
@@ -264,15 +248,7 @@ try {
             ))}
           </select>
         </div>
-        <button
-          onClick={reloadDoctors}
-          className="custom-button text-sm"
-          disabled={loading}
-        >
-          {loading ? 'Cargando...' : 'Recargar'}
-        </button>
       </div>
-
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
           {error}
@@ -290,7 +266,7 @@ try {
       </div>
 
       {/* Contenedor con altura y ancho fijos y scrollbar */}
-      <div className="border rounded-lg" style={{ height: '500px', width: '1800px', overflowY: 'auto', overflowX: 'auto' }}>
+      <div className="border rounded-lg" style={{ height: '630px', width: '1800px', overflowY: 'auto', overflowX: 'auto' }}>
         <table className="text-xs" style={{ borderCollapse: 'collapse', width: 'max-content' }}>
           <thead>
             <tr className="sticky top-0 z-10" style={{ backgroundColor: '#e5e7eb' }}>

@@ -229,14 +229,15 @@ const App = () => {
         </div>
         <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-8">
           <h1 className="main-heading">Organizador de turnos médicos</h1>
-          <nav className="flex flex-wrap justify-center gap-3">
-            <button onClick={() => handleNavClick('dashboard')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'dashboard' ? 'active-button' : ''}`}>Dashboard</button>
-            <button onClick={() => handleNavClick('addDoctor')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'addDoctor' ? 'active-button' : ''}`}>Agregar Médico</button>
-            <button onClick={() => handleNavClick('doctorsList')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'doctorsList' ? 'active-button' : ''}`}>Lista de Médicos</button>
-            <button onClick={() => handleNavClick('legal')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'legal' ? 'active-button' : ''}`}>Requerimientos Legales</button>
-            <button onClick={() => handleNavClick('policies')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'policies' ? 'active-button' : ''}`}>Políticas Internas</button>
-            <button onClick={() => handleNavClick('hours')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'hours' ? 'active-button' : ''}`}>Horas Laborales</button>
-            <button onClick={() => handleNavClick('assign')} className={`custom-button text-sm px-3 py-1.5 m-1 ${activeTab === 'assign' ? 'active-button' : ''}`}>Asignar Turnos</button>
+          <nav className="flex flex-nowrap justify-start gap-2 overflow-x-auto pb-2">
+            <button onClick={() => handleNavClick('dashboard')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'dashboard' ? 'active-button' : ''}`}>Dashboard</button>
+            <button onClick={() => handleNavClick('addDoctor')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'addDoctor' ? 'active-button' : ''}`}>Agregar Médico</button>
+            <button onClick={() => handleNavClick('doctorsList')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'doctorsList' ? 'active-button' : ''}`}>Lista de Médicos</button>
+            <button onClick={() => handleNavClick('assign')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'assign' ? 'active-button' : ''}`}>Evento Especial</button>
+            <button onClick={() => handleNavClick('hours')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'hours' ? 'active-button' : ''}`}>Horas Laborales</button>
+            <button onClick={() => handleNavClick('assign')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'assign' ? 'active-button' : ''}`}>Asignar Turnos</button>
+            <button onClick={() => handleNavClick('legal')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'legal' ? 'active-button' : ''}`}>Requerimientos Legales</button>
+            <button onClick={() => handleNavClick('policies')} className={`custom-button text-xs px-2 py-1.5 whitespace-nowrap flex-shrink-0 ${activeTab === 'policies' ? 'active-button' : ''}`}>Políticas Internas</button>
           </nav>
         </header>
         <main className="main-content bg-white rounded-xl shadow-md p-6 mb-8 overflow-auto h-full">

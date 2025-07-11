@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
-import Icon from "./assets/icon.png";
-import { openDB, addDoctor, getDoctors, updateDoctor, deleteDoctor, Doctor } from "./database/db";
-import './App.css';
-import DoctorForm from './components/doctorsrender/doctorform';
-import DoctorsList from './components/doctorsrender/doctorslist';
-import LegalRequirements, { LegalRequirement } from './components/doctorsrender/legalrequirements';
-import InternalPolicies, { InternalPolicy } from './components/doctorsrender/internalpolicies';
-import MonthlyHours, { MonthlyHoursData } from './components/doctorsrender/monthlyhours';
-import ShiftAssignment, { ShiftAssignment as ShiftAssignmentType } from './components/doctorsrender/shiftassignment';
-import CalendarModal from './components/calendario/calendarmodal';
+import { useState, useEffect } from "react"
+import Icon from "./assets/icon.png"
+import { openDB, addDoctor, getDoctors, updateDoctor, deleteDoctor, Doctor } from "./database/db"
+import './App.css'
+import DoctorForm from './components/doctorsrender/doctorform'
+import DoctorsList from './components/doctorsrender/doctorslist'
+import LegalRequirements, { LegalRequirement } from './components/doctorsrender/legalrequirements'
+import EventosEspeciales from './components/doctorsrender/eventosespeciales'
+import InternalPolicies, { InternalPolicy } from './components/doctorsrender/internalpolicies'
+import MonthlyHours, { MonthlyHoursData } from './components/doctorsrender/monthlyhours'
+import ShiftAssignment, { ShiftAssignment as ShiftAssignmentType } from './components/doctorsrender/shiftassignment'
+import CalendarModal from './components/calendario/calendarmodal'
 
 declare global {
   interface Window {
@@ -186,15 +187,17 @@ const App = () => {
       case 'addDoctor':
         return <DoctorForm doctorData={doctorData} showSpecialtyField={showSpecialtyField} isEditing={isEditing} handleInputChange={handleInputChange} handleSubmit={handleSubmit} resetForm={resetForm} formErrors={formErrors} specialtyError={specialtyError} />;
       case 'doctorsList':
-        return <DoctorsList doctors={doctors} onEdit={handleEdit} onDelete={handleDelete} />;
+        return <DoctorsList doctors={doctors} onEdit={handleEdit} onDelete={handleDelete} />
       case 'legal':
-        return <LegalRequirements legalRequirements={legalRequirements} />;
+        return <LegalRequirements legalRequirements={legalRequirements} />
       case 'policies':
-        return <InternalPolicies internalPolicies={internalPolicies} />;
+        return <InternalPolicies internalPolicies={internalPolicies} />
       case 'hours':
         return <MonthlyHours selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} calculateMonthlyHours={calculateMonthlyHours} monthlyHours={monthlyHours} hasDoctors={doctors.length > 0} />;
       case 'assign':
         return <ShiftAssignment shiftAssignments={shiftAssignments} onGenerate={() => window.electronAPI.openChildWindow()} />;
+      case 'eventoEspecial':
+        return <EventosEspeciales />
       default:
         return (
           <div className="p-4 text-center">
@@ -235,7 +238,7 @@ const App = () => {
               ['dashboard', 'Dashboard'],
               ['addDoctor', 'Agregar Médico'],
               ['doctorsList', 'Lista de Médicos'],
-              ['assign', 'Evento Especial'],
+              ['eventoEspecial', 'Evento Especial'],
               ['hours', 'Horas Laborales'],
               ['assign', 'Asignar Turnos'],
               ['legal', 'Requerimientos Legales'],

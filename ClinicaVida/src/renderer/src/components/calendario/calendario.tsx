@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
 import { calculateMonthlyHours } from './calendarioAux'; // IMPORTACIÓN DE LA FUNCIÓN PARA CALCULAR HORAS MENSUALES
-// Tipos de la base de datos
+
+// Tipos de la base de datos - ACTUALIZADOS para coincidir con db.ts
 interface Doctor {
   id?: number
   name: string
@@ -14,9 +15,11 @@ interface Doctor {
   horasTrabajadas: number
 }
 
+// CONFIGURACIÓN ACTUALIZADA para coincidir con db.ts
 const DB_NAME = 'ClinicaVidaDB'
-const DB_VERSION = 2
-const STORE_NAME = 'doctors'
+const DB_VERSION = 3  // ← CAMBIADO de 2 a 3
+const DOCTORS_STORE = 'doctors'  // ← RENOMBRADO de STORE_NAME
+const EVENTOS_STORE = 'eventos_especiales'  // ← AGREGADO
 
 let dbInstance: IDBDatabase | null = null
 
@@ -34,35 +37,46 @@ const openDB = async (): Promise<IDBDatabase> => {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result
 
-      if (db.objectStoreNames.contains(STORE_NAME)) {
-        db.deleteObjectStore(STORE_NAME)
+      // Store de doctores - ACTUALIZADO para coincidir con db.ts
+      if (!db.objectStoreNames.contains(DOCTORS_STORE)) {
+        const doctorsStore = db.createObjectStore(DOCTORS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true
+        })
+
+        doctorsStore.createIndex('idNumber', 'idNumber', { unique: true })
+        doctorsStore.createIndex('name', 'name', { unique: false })
+        doctorsStore.createIndex('group', 'group', { unique: false })
+        doctorsStore.createIndex('hasSpecialty', 'hasSpecialty', { unique: false })
       }
 
-      const store = db.createObjectStore(STORE_NAME, {
-        keyPath: 'id',
-        autoIncrement: true
-      });
+      // Store de eventos especiales - AGREGADO
+      if (!db.objectStoreNames.contains(EVENTOS_STORE)) {
+        const eventosStore = db.createObjectStore(EVENTOS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true
+        })
 
-      store.createIndex('idNumber', 'idNumber', { unique: true });
-      store.createIndex('name', 'name', { unique: false });
-      store.createIndex('group', 'group', { unique: false });
-      store.createIndex('hasSpecialty', 'hasSpecialty', { unique: false });
-    };
-  });
-};
+        eventosStore.createIndex('doctorId', 'doctorId', { unique: false })
+        eventosStore.createIndex('type', 'type', { unique: false })
+        eventosStore.createIndex('fechaInicio', 'fechaInicio', { unique: false })
+      }
+    }
+  })
+}
 
 const getDoctors = async (): Promise<Doctor[]> => {
-  const db = await openDB();
+  const db = await openDB()
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
+    const transaction = db.transaction([DOCTORS_STORE], 'readonly')  // ← ACTUALIZADO nombre del store
+    const store = transaction.objectStore(DOCTORS_STORE)  // ← ACTUALIZADO nombre del store
+    const request = store.getAll()
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-};
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
 
 // Tipos originales del calendario
 type Turno = { [dia: number]: string }
@@ -135,7 +149,8 @@ try {
         {
           nombre: 'Dr. Ejemplo',
           especialidad: 'General',
-          turnos: { 1: 'C8', 15: 'C10' }
+          turnos: { 1: 'C8', 15: 'C10' },
+          horasTrabajadas: 0
         }
       ];
       setMedicos(ejemploMedicos);
@@ -174,7 +189,8 @@ try {
       {
         nombre: 'Error - Datos de ejemplo',
         especialidad: 'General',
-        turnos: {}
+        turnos: {},
+        horasTrabajadas: 0
       }
     ];
     setMedicos(ejemploMedicos);

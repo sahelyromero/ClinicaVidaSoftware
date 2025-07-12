@@ -1,113 +1,102 @@
-import React, { useState, useEffect } from 'react'
-import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
-import { calculateMonthlyHours } from './calendarioAux'; // IMPORTACIÓN DE LA FUNCIÓN PARA CALCULAR HORAS MENSUALES
+import React, { useState, useEffect } from 'react';
+import { asignarTurnosHospitalizacion, asignarTurnosUrgencias, asignarTurnosFinDeSemanaHospitalizacion } from './calendario-func';
+import { calculateMonthlyHours } from './calendarioAux';
 
-// Tipos de la base de datos - ACTUALIZADOS para coincidir con db.ts
 interface Doctor {
-  id?: number
-  name: string
-  idNumber: string
-  birthDate: string
-  hasSpecialty: boolean
-  specialty?: string
-  group?: 'urgencias' | 'hospitalización' | 'refuerzo'
-  email?: string
-  horasTrabajadas: number
+  id?: number;
+  name: string;
+  idNumber: string;
+  birthDate: string;
+  hasSpecialty: boolean;
+  specialty?: string;
+  group?: 'urgencias' | 'hospitalización' | 'refuerzo';
+  email?: string;
+  horasTrabajadas: number;
 }
 
-// CONFIGURACIÓN ACTUALIZADA para coincidir con db.ts
-const DB_NAME = 'ClinicaVidaDB'
-const DB_VERSION = 3  // ← CAMBIADO de 2 a 3
-const DOCTORS_STORE = 'doctors'  // ← RENOMBRADO de STORE_NAME
-const EVENTOS_STORE = 'eventos_especiales'  // ← AGREGADO
+const DB_NAME = 'ClinicaVidaDB';
+const DB_VERSION = 3;
+const DOCTORS_STORE = 'doctors';
+const EVENTOS_STORE = 'eventos_especiales';
 
-let dbInstance: IDBDatabase | null = null
+let dbInstance: IDBDatabase | null = null;
 
 const openDB = async (): Promise<IDBDatabase> => {
-  if (dbInstance) return dbInstance
+  if (dbInstance) return dbInstance;
 
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(request.error)
+    request.onerror = () => reject(request.error);
     request.onsuccess = () => {
-      dbInstance = request.result
-      resolve(request.result)
-    }
+      dbInstance = request.result;
+      resolve(request.result);
+    };
     request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result
+      const db = (event.target as IDBOpenDBRequest).result;
 
-      // Store de doctores - ACTUALIZADO para coincidir con db.ts
       if (!db.objectStoreNames.contains(DOCTORS_STORE)) {
         const doctorsStore = db.createObjectStore(DOCTORS_STORE, {
           keyPath: 'id',
           autoIncrement: true
-        })
+        });
 
-        doctorsStore.createIndex('idNumber', 'idNumber', { unique: true })
-        doctorsStore.createIndex('name', 'name', { unique: false })
-        doctorsStore.createIndex('group', 'group', { unique: false })
-        doctorsStore.createIndex('hasSpecialty', 'hasSpecialty', { unique: false })
+        doctorsStore.createIndex('idNumber', 'idNumber', { unique: true });
+        doctorsStore.createIndex('name', 'name', { unique: false });
+        doctorsStore.createIndex('group', 'group', { unique: false });
+        doctorsStore.createIndex('hasSpecialty', 'hasSpecialty', { unique: false });
       }
 
-      // Store de eventos especiales - AGREGADO
       if (!db.objectStoreNames.contains(EVENTOS_STORE)) {
         const eventosStore = db.createObjectStore(EVENTOS_STORE, {
           keyPath: 'id',
           autoIncrement: true
-        })
+        });
 
-        eventosStore.createIndex('doctorId', 'doctorId', { unique: false })
-        eventosStore.createIndex('type', 'type', { unique: false })
-        eventosStore.createIndex('fechaInicio', 'fechaInicio', { unique: false })
+        eventosStore.createIndex('doctorId', 'doctorId', { unique: false });
+        eventosStore.createIndex('type', 'type', { unique: false });
+        eventosStore.createIndex('fechaInicio', 'fechaInicio', { unique: false });
       }
-    }
-  })
-}
+    };
+  });
+};
 
 const getDoctors = async (): Promise<Doctor[]> => {
-  const db = await openDB()
+  const db = await openDB();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([DOCTORS_STORE], 'readonly')  // ← ACTUALIZADO nombre del store
-    const store = transaction.objectStore(DOCTORS_STORE)  // ← ACTUALIZADO nombre del store
-    const request = store.getAll()
+    const transaction = db.transaction([DOCTORS_STORE], 'readonly');
+    const store = transaction.objectStore(DOCTORS_STORE);
+    const request = store.getAll();
 
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
-  })
-}
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
 
-// Tipos originales del calendario
-type Turno = { [dia: number]: string }
+type Turno = { [dia: number]: string };
 
 type Medico = {
-  nombre: string
-  especialidad: string
-  turnos: Turno
-  grupo?: 'hospitalización' | 'urgencias' | 'refuerzo'
-  horasTrabajadas: number
-}
+  nombre: string;
+  especialidad: string;
+  turnos: Turno;
+  grupo?: 'hospitalización' | 'urgencias' | 'refuerzo';
+  horasTrabajadas: number;
+};
 
 const especialidadColor = (especialidad: string) => {
   const colores: { [key: string]: string } = {
-    'Hemato-oncología': '#f8caca',
-    'Refuerzo': '#c8f8c8',
+    'Hemato-oncología': '#fbfcc8ff',
+    'Refuerzo': '#ffce6bff',
     'Oncología': '#c8e0f8',
     'Medicina interna': '#e5c8f8',
-    'Cirugía hepatobiliar': '#c8f8f2',
+    'Cirugía hepatobiliar': '#ffd3ca',
     'Urgencias': '#ffd4cc',
     'Dolor y cuidados paliativos': '#d4f4dd',
-    'Cardiología': '#e6f3ff',
-    'Neurología': '#f0e6ff',
-    'Pediatría': '#fff2cc'
+    'Cirugía de tórax': '#ffd3ca',
+    'Cirugía oncológica': '#ffd3ca',
   };
-  if (!especialidad) {
-    return '#ffd4cc'; // Color por defecto si no hay especialidad
-  }
-  else {
-    return colores[especialidad] || '#f5f5f5';
-  }
+  return colores[especialidad] || '#77a8f5ff';
 };
 
 const convertDoctorToMedico = (doctor: Doctor): Medico => {
@@ -135,73 +124,101 @@ const Calendario: React.FC = () => {
 
   const dayAbbreviations = ['D', 'L', 'M', 'Mi', 'J', 'V', 'S'];
 
-useEffect(() => {
-  const loadDoctors = async () => {
-try {
-  setLoading(true);
-  setError(null);
+  useEffect(() => {
+    const loadDoctors = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    const doctors = await getDoctors()
-    const medicosFromDB = doctors.map(convertDoctorToMedico);
+        const doctors = await getDoctors();
+        const medicosFromDB = doctors.map(convertDoctorToMedico);
 
-    if (medicosFromDB.length === 0) {
-      const ejemploMedicos: Medico[] = [
-        {
-          nombre: 'Dr. Ejemplo',
-          especialidad: 'General',
-          turnos: { 1: 'C8', 15: 'C10' },
-          horasTrabajadas: 0
+        if (medicosFromDB.length === 0) {
+          const ejemploMedicos: Medico[] = [{
+            nombre: 'Dr. Ejemplo',
+            especialidad: 'General',
+            turnos: { 1: 'C8', 15: 'C10' },
+            horasTrabajadas: 0
+          }];
+          setMedicos(ejemploMedicos);
+        } else {
+          // Separar médicos por grupo
+          const medicosHospitalizacion = medicosFromDB.filter((m) => m.grupo === 'hospitalización');
+          const medicosUrgencias = medicosFromDB.filter(m => m.grupo === 'urgencias');
+          const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
+
+          // Asignar turnos
+          let medicosHospConTurnos = medicosHospitalizacion.length > 0
+            ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
+            : [];
+          medicosHospConTurnos = asignarTurnosFinDeSemanaHospitalizacion(medicosHospConTurnos, selectedMonth, selectedYear);
+
+          const medicosUrgConTurnos = medicosUrgencias.length > 0
+            ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)
+            : [];
+
+          const medicosOtrosConTurnos = medicosOtros.map(medico => ({ ...medico, turnos: {} }));
+
+          // Combinar y ordenar médicos
+          let todosMedicos = [
+            ...medicosHospConTurnos,
+            ...medicosUrgConTurnos,
+            ...medicosOtrosConTurnos
+          ];
+
+          // Ordenar por especialidad y luego por nombre (cirugías antes de refuerzo)
+          todosMedicos.sort((a, b) => {
+            const ordenEspecialidades = [
+              'medicina interna',
+              'oncología',
+              
+              'dolor y cuidados paliativos',
+              'hemato-oncología', 
+              // Cirugías antes del refuerzo
+              'cirugía oncológica',
+              'cirugía de tórax',
+              'cirugía hepatobiliar',
+              'refuerzo',
+              'urgencias',
+              'general'
+            ];
+
+            const indexA = ordenEspecialidades.findIndex(esp => 
+              a.especialidad.toLowerCase().includes(esp.toLowerCase())
+            );
+            const indexB = ordenEspecialidades.findIndex(esp => 
+              b.especialidad.toLowerCase().includes(esp.toLowerCase())
+            );
+
+            if (indexA !== indexB) {
+              if (indexA === -1) return 1;
+              if (indexB === -1) return -1;
+              return indexA - indexB;
+            }
+
+            return a.nombre.localeCompare(b.nombre);
+          });
+
+          setMedicos(todosMedicos);
         }
-      ];
-      setMedicos(ejemploMedicos);
-    } else {
-      // Separar médicos por grupo
-      const medicosHospitalizacion = medicosFromDB.filter((m) => m.grupo === 'hospitalización');
-      const medicosUrgencias = medicosFromDB.filter(m => m.grupo === 'urgencias');
-      const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
-
-      // Asignar turnos por separado
-      const medicosHospConTurnos = medicosHospitalizacion.length > 0
-        ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
-        : [];
-
-      const medicosUrgConTurnos = medicosUrgencias.length > 0
-        ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)
-        : [];
-
-      // Los otros médicos sin turnos asignados
-      const medicosOtrosConTurnos = medicosOtros.map(medico => ({ ...medico, turnos: {} }));
-
-      // Combinar todos los médicos en una sola llamada a setMedicos
-      const todosMedicos = [
-        ...medicosHospConTurnos,
-        ...medicosUrgConTurnos,
-        ...medicosOtrosConTurnos
-      ];
-
-      setMedicos(todosMedicos); // ¡Solo una llamada!
-    }
-  } catch (err) {
-    console.error('Error al cargar médicos:', err);
-    setError('Error al cargar los médicos de la base de datos');
-
-    const ejemploMedicos: Medico[] = [
-      {
-        nombre: 'Error - Datos de ejemplo',
-        especialidad: 'General',
-        turnos: {},
-        horasTrabajadas: 0
+      } catch (err) {
+        console.error('Error al cargar médicos:', err);
+        setError('Error al cargar los médicos de la base de datos');
+        setMedicos([{
+          nombre: 'Error - Datos de ejemplo',
+          especialidad: 'General',
+          turnos: {},
+          horasTrabajadas: 0
+        }]);
+      } finally {
+        setLoading(false);
       }
-    ];
-    setMedicos(ejemploMedicos);
-  } finally {
-    setLoading(false);
-  }
-};
+    };
 
     loadDoctors();
-  }, [selectedMonth, selectedYear]); // 👈 Dependencias para recalcular turnos al cambiar mes/año
+  }, [selectedMonth, selectedYear]);
 
+  
   const getDaysInMonth = () => new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
   const getDayAbbreviation = (day: number) => {

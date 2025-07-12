@@ -12,54 +12,47 @@ import {
 } from './eventosEspecialesHelpers';
 
 const EventosEspeciales: React.FC = () => {
-  // Estados
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<string>('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [availableSpecialties, setAvailableSpecialties] = useState<string[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
-  const [eventType, setEventType] = useState<string>('');
-  const [fechaInicio, setFechaInicio] = useState<string>('');
-  const [fechaFin, setFechaFin] = useState<string>('');
-  const [descripcion, setDescripcion] = useState<string>('');
+  const [eventType, setEventType] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [eventos, setEventos] = useState<EventoEspecial[]>([]);
   const [loadingEventos, setLoadingEventos] = useState(false);
   const [isAdding, setIsAdding] = useState(true);
 
-  // Efectos
   useEffect(() => {
-    loadDoctors();
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const doctorsFromDB = await getDoctors();
+        setDoctors(doctorsFromDB);
+      } catch (error) {
+        setErrorMessage('Error al cargar la lista de doctores');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
   }, []);
 
   useEffect(() => {
-    const filtered = filterDoctors(doctors, selectedGroup, selectedSpecialty);
-    setFilteredDoctors(filtered);
+    setFilteredDoctors(filterDoctors(doctors, selectedGroup, selectedSpecialty));
   }, [doctors, selectedGroup, selectedSpecialty]);
 
   useEffect(() => {
-    const specialties = getAvailableSpecialties(doctors, selectedGroup);
-    setAvailableSpecialties(specialties);
+    setAvailableSpecialties(getAvailableSpecialties(doctors, selectedGroup));
     if (selectedGroup !== 'hospitalización') setSelectedSpecialty('');
   }, [selectedGroup, doctors]);
-
-  // Funciones
-  const loadDoctors = async () => {
-    try {
-      setLoading(true);
-      const doctorsFromDB = await getDoctors();
-      setDoctors(doctorsFromDB);
-    } catch (error) {
-      console.error('Error al cargar doctores:', error);
-      setErrorMessage('Error al cargar la lista de doctores');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadEventos = async () => {
     try {
@@ -67,44 +60,19 @@ const EventosEspeciales: React.FC = () => {
       const eventosFromDB = await getEventosEspeciales();
       setEventos(eventosFromDB);
     } catch (error) {
-      console.error('Error al cargar eventos:', error);
       setErrorMessage('Error al cargar la lista de eventos');
     } finally {
       setLoadingEventos(false);
     }
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  const getEventTypeLabel = (type: string) => {
-    const tipoEvento = TIPOS_EVENTO.find(t => t.value === type);
-    return tipoEvento ? tipoEvento.label : type;
-  };
-
-  const getDoctorName = (doctorId: number) => {
-    const doctor = doctors.find(d => d.id === doctorId);
-    return doctor ? doctor.name : 'Médico no encontrado';
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const validationError = validateForm(selectedDoctor, eventType, fechaInicio, fechaFin);
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
+    const error = validateForm(selectedDoctor, eventType, fechaInicio, fechaFin);
+    if (error) return setErrorMessage(error);
 
     try {
       setSaving(true);
-      setErrorMessage('');
-
       const evento: Omit<EventoEspecial, 'id' | 'fechaCreacion'> = {
         doctorId: selectedDoctor!,
         type: eventType as EventoEspecial['type'],
@@ -112,13 +80,11 @@ const EventosEspeciales: React.FC = () => {
         fechaFin: eventType === 'vacaciones' ? new Date(fechaFin) : undefined,
         descripcion: descripcion || undefined
       };
-
       await addEventoEspecial(evento);
       resetForm();
       setShowSuccessModal(true);
       if (!isAdding) loadEventos();
-    } catch (error) {
-      console.error('Error al guardar evento:', error);
+    } catch {
       setErrorMessage('Error al registrar el evento especial');
     } finally {
       setSaving(false);
@@ -136,334 +102,116 @@ const EventosEspeciales: React.FC = () => {
     setErrorMessage('');
   };
 
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    resetForm();
-  };
+  const formatDate = (date: Date) => new Date(date).toLocaleDateString('es-ES');
+  const getEventTypeLabel = (type: string) => TIPOS_EVENTO.find(t => t.value === type)?.label || type;
+  const getDoctorName = (id: number) => doctors.find(d => d.id === id)?.name || 'Médico no encontrado';
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="text-lg font-semibold mb-2">Cargando...</div>
-          <div className="text-gray-500">Obteniendo lista de médicos</div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center h-64">Cargando...</div>;
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
-      <h1 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">Registro de Eventos Especiales</h1>
+      <h1 className="text-2xl font-centuryGothic mb-6 text-gray-800">Registro de Eventos Especiales</h1>
 
-      {/* Mensaje de error */}
-      {errorMessage && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 rounded-md flex items-center">
-          <span className="text-red-700">{errorMessage}</span>
-        </div>
-      )}
+      {errorMessage && <div className="mb-4 p-3 bg-red-100 border border-red-400 rounded-md text-red-700">{errorMessage}</div>}
 
-      {/* Botones principales */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <button
-          onClick={() => setIsAdding(true)}
-          className={`flex-1 py-2 px-4 rounded-md transition-colors ${
-            isAdding ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          Agregar Evento
-        </button>
-        <button
-          onClick={() => {
-            setIsAdding(false);
-            loadEventos();
-          }}
-          className={`flex-1 py-2 px-4 rounded-md transition-colors ${
-            !isAdding ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          Ver Lista
-        </button>
+      <div className="flex flex-wrap justify-center gap-3 mb-6">
+        <button onClick={() => setIsAdding(true)} className={`custom-button text-sm px-3 py-1.5 m-1 ${isAdding ? 'active-button' : ''}`}>Agregar Evento</button>
+        <button onClick={() => { setIsAdding(false); loadEventos(); }} className={`custom-button text-sm px-3 py-1.5 m-1 ${!isAdding ? 'active-button' : ''}`}>Ver Lista</button>
       </div>
 
-      {/* Formulario o lista */}
       {isAdding ? (
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4">Registrar Nuevo Evento</h2>
-
-          {/* Filtros */}
-          <div className="bg-gray-50 p-3 rounded-md mb-4">
-            <h3 className="font-medium mb-3 text-gray-700">Filtros de Médicos</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm">Filtrar por Tipo:</label>
+              <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)} className="input">
+                <option value="">Todos</option>
+                {GRUPOS_MEDICOS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+            </div>
+            {selectedGroup === 'hospitalización' && (
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Filtrar por Tipo:</label>
-                <select
-                  value={selectedGroup}
-                  onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Todos los tipos</option>
-                  {GRUPOS_MEDICOS.map(grupo => (
-                    <option key={grupo.value} value={grupo.value}>{grupo.label}</option>
-                  ))}
+                <label className="text-sm">Filtrar por Especialidad:</label>
+                <select value={selectedSpecialty} onChange={e => setSelectedSpecialty(e.target.value)} className="input">
+                  <option value="">Todas</option>
+                  {availableSpecialties.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm">Seleccionar Médico:</label>
+            <select value={selectedDoctor || ''} onChange={e => setSelectedDoctor(Number(e.target.value))} className="input">
+              <option value="">Seleccione</option>
+              {filteredDoctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </div>
+
+          {selectedDoctor && (
+            <>
+              <div>
+                <label className="text-sm">Tipo de Evento:</label>
+                <select value={eventType} onChange={e => setEventType(e.target.value)} className="input">
+                  <option value="">Seleccione</option>
+                  {TIPOS_EVENTO.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
 
-              {selectedGroup === 'hospitalización' && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Filtrar por Especialidad:</label>
-                  <select
-                    value={selectedSpecialty}
-                    onChange={(e) => setSelectedSpecialty(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Todas las especialidades</option>
-                    {availableSpecialties.map(specialty => (
-                      <option key={specialty} value={specialty}>{specialty}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="input" required />
+                {eventType === 'vacaciones' && <input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="input" required min={fechaInicio} />}
+              </div>
+
+              <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción (opcional)" className="input" rows={3} />
+            </>
+          )}
+
+          <div className="flex flex-wrap gap-3 pt-4">
+            <button type="submit" disabled={saving} className="custom-button">{saving ? 'Guardando...' : 'Registrar Evento'}</button>
+            <button type="button" onClick={resetForm} className="custom-button bg-gray-100 text-gray-800 hover:bg-gray-200">Limpiar</button>
           </div>
-
-          {/* Campos del formulario */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
-                Seleccionar Médico: <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedDoctor || ''}
-                onChange={(e) => setSelectedDoctor(Number(e.target.value))}
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Seleccione un médico</option>
-                {filteredDoctors.map(doctor => (
-                  <option key={doctor.id} value={doctor.id}>
-                    {doctor.name} {doctor.specialty && `(${doctor.specialty})`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {selectedDoctor && (
-              <>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    Tipo de Evento: <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    required
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Seleccione el tipo de evento</option>
-                    {TIPOS_EVENTO.map(tipo => (
-                      <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {eventType && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1">
-                          {eventType === 'vacaciones' ? 'Fecha de Inicio:' : 'Fecha del Evento:'} <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={fechaInicio}
-                          onChange={(e) => setFechaInicio(e.target.value)}
-                          required
-                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      {eventType === 'vacaciones' && (
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">
-                            Fecha de Fin: <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            value={fechaFin}
-                            onChange={(e) => setFechaFin(e.target.value)}
-                            required
-                            min={fechaInicio}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Descripción (opcional):
-                      </label>
-                      <textarea
-                        value={descripcion}
-                        onChange={(e) => setDescripcion(e.target.value)}
-                        rows={3}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            {/* Botones del formulario */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <button
-                onClick={handleSubmit}
-                disabled={saving || !selectedDoctor || !eventType || !fechaInicio}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Guardando...
-                  </span>
-                ) : 'Registrar Evento'}
-              </button>
-
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                Limpiar
-              </button>
-            </div>
-          </div>
-        </div>
+        </form>
       ) : (
-        /* TABLA CON SCROLL CORREGIDA */
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Eventos Registrados ({eventos.length})
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-800">Eventos Registrados ({eventos.length})</h2>
           </div>
 
           {loadingEventos ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="text-gray-500">Cargando eventos...</div>
-            </div>
+            <div className="flex justify-center items-center h-64">Cargando eventos...</div>
           ) : eventos.length === 0 ? (
-            <div className="flex justify-center items-center h-64 text-gray-500">
-              <p className="text-lg">No hay eventos registrados</p>
-            </div>
+            <div className="flex justify-center items-center h-64 text-gray-500">No hay eventos registrados</div>
           ) : (
-            /* CONTENEDOR CON SCROLL FUNCIONAL */
-            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[60vh]">
               <table className="min-w-full bg-white">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 border-b border-gray-200">
-                      Médico
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 border-b border-gray-200">
-                      Tipo
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 border-b border-gray-200">
-                      Fecha Inicio
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 border-b border-gray-200">
-                      Fecha Fin
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 border-b border-gray-200">
-                      Descripción
-                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Médico</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Tipo</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Fecha Inicio</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Fecha Fin</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Descripción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {eventos.map((evento, index) => (
-                    <tr
-                      key={evento.id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                      }`}
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                        {getDoctorName(evento.doctorId)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
-                          {getEventTypeLabel(evento.type)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                        {formatDate(evento.fechaInicio)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                        {evento.fechaFin ? formatDate(evento.fechaFin) : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500 max-w-xs">
-                        <div className="truncate" title={evento.descripcion || '-'}>
-                          {evento.descripcion || '-'}
-                        </div>
-                      </td>
+                  {eventos.map(e => (
+                    <tr key={e.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{getDoctorName(e.doctorId)}</td>
+                      <td className="px-4 py-3 text-sm"><span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">{getEventTypeLabel(e.type)}</span></td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{formatDate(e.fechaInicio)}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{e.fechaFin ? formatDate(e.fechaFin) : '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate" title={e.descripcion || '-'}>{e.descripcion || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-
-          {/* Indicador de scroll si hay muchos elementos */}
-          {eventos.length > 8 && (
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-center">
-              Desplázate para ver más registros ({eventos.length} total)
-            </div>
-          )}
         </div>
       )}
 
-      {/* Modal de éxito */}
-      <SuccessModal
-        show={showSuccessModal}
-        onClose={handleCloseSuccessModal}
-      />
-
-      {/* CSS mejorado para scrollbar */}
-      <style jsx>{`
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 8px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 4px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        .overflow-x-auto::-webkit-scrollbar {
-          height: 8px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 4px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
+      <SuccessModal show={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
     </div>
   );
 };

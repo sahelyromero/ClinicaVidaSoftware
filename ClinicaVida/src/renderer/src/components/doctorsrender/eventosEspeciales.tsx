@@ -9,7 +9,7 @@ import {
   filterDoctors,
   getAvailableSpecialties,
   SuccessModal
-} from './EventosEspecialesHelpers';
+} from './eventosEspecialesHelpers';
 
 const EventosEspeciales: React.FC = () => {
   // Estados

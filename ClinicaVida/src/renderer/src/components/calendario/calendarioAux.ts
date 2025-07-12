@@ -1,6 +1,22 @@
+// calendarioAux.ts - VERSIÓN CORREGIDA
+
 import { getEventosByDoctor, getDoctors } from '../../database/db'
 import type { EventoEspecial, Doctor } from '../../database/db'
 import type { Medico } from './calendario-func'
+
+// Función para crear fecha sin zona horaria (solo fecha local)
+const crearFechaSinZonaHoraria = (fechaString: string): Date => {
+  // Si la fecha viene como string (ej: "2024-07-23"), crear fecha local
+  if (typeof fechaString === 'string') {
+    const [year, month, day] = fechaString.split('-').map(Number)
+    return new Date(year, month - 1, day) // mes - 1 porque Date usa base 0
+  }
+
+  // Si ya es Date, verificar si tiene zona horaria
+  const fecha = new Date(fechaString)
+  // Si tiene zona horaria, convertir a fecha local
+  return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
+}
 
 // Función para obtener el símbolo del evento
 const obtenerSimboloEvento = (tipo: EventoEspecial['type']): string => {
@@ -26,7 +42,7 @@ const aplicarCumpleanos = (
   turnos: Record<number, string>,
   mes: number
 ): void => {
-  const fechaNacimiento = new Date(doctor.birthDate)
+  const fechaNacimiento = crearFechaSinZonaHoraria(doctor.birthDate)
   if (fechaNacimiento.getMonth() === mes) {
     const dia = fechaNacimiento.getDate()
     turnos[dia] = 'C4'
@@ -35,16 +51,19 @@ const aplicarCumpleanos = (
 
 // Función para verificar si un evento aplica en el mes
 const eventoAplicaEnMes = (evento: EventoEspecial, mes: number, año: number): boolean => {
-  const fechaInicio = new Date(evento.fechaInicio)
+  const fechaInicio = crearFechaSinZonaHoraria(evento.fechaInicio)
   const mesEvento = fechaInicio.getMonth()
   const añoEvento = fechaInicio.getFullYear()
 
   if (evento.type === 'vacaciones' && evento.fechaFin) {
-    const fechaFin = new Date(evento.fechaFin)
+    const fechaFin = crearFechaSinZonaHoraria(evento.fechaFin)
+    const inicioMes = new Date(año, mes, 1)
+    const finMes = new Date(año, mes + 1, 0)
+
     // Las vacaciones aplican si hay superposición con el mes actual
     return (mesEvento === mes && añoEvento === año) ||
            (fechaFin.getMonth() === mes && fechaFin.getFullYear() === año) ||
-           (fechaInicio <= new Date(año, mes, 1) && fechaFin >= new Date(año, mes + 1, 0))
+           (fechaInicio <= finMes && fechaFin >= inicioMes)
   } else {
     // Otros eventos aplican solo si están en el mes específico
     return mesEvento === mes && añoEvento === año
@@ -63,21 +82,28 @@ const aplicarEventoATurnos = (
 
   if (evento.type === 'vacaciones' && evento.fechaFin) {
     // Para vacaciones, aplicar a todos los días del rango
-    const fechaInicio = new Date(evento.fechaInicio)
-    const fechaFin = new Date(evento.fechaFin)
+    const fechaInicio = crearFechaSinZonaHoraria(evento.fechaInicio)
+    const fechaFin = crearFechaSinZonaHoraria(evento.fechaFin)
 
-    for (let d = new Date(fechaInicio); d <= fechaFin; d.setDate(d.getDate() + 1)) {
-      if (d.getMonth() === mes && d.getFullYear() === año) {
-        const dia = d.getDate()
+    // Crear fecha actual para iterar
+    const fechaActual = new Date(fechaInicio)
+
+    while (fechaActual <= fechaFin) {
+      if (fechaActual.getMonth() === mes && fechaActual.getFullYear() === año) {
+        const dia = fechaActual.getDate()
         turnos[dia] = simbolo
       }
+      fechaActual.setDate(fechaActual.getDate() + 1)
     }
   } else {
     // Para otros eventos de un solo día
-    const fechaEvento = new Date(evento.fechaInicio)
+    const fechaEvento = crearFechaSinZonaHoraria(evento.fechaInicio)
     if (fechaEvento.getMonth() === mes && fechaEvento.getFullYear() === año) {
       const dia = fechaEvento.getDate()
       turnos[dia] = simbolo
+
+      // DEBUG: Agregar console.log para verificar
+      console.log(`Aplicando evento ${simbolo} del doctor ${evento.doctorId} en fecha ${evento.fechaInicio} -> día ${dia} del mes ${mes + 1}`)
     }
   }
 }
@@ -89,6 +115,8 @@ export const aplicarEventosEspeciales = async (
   año: number
 ): Promise<Medico[]> => {
   try {
+    console.log(`Aplicando eventos especiales para ${mes + 1}/${año}`)
+
     // Obtener todos los doctores una sola vez
     const doctores = await getDoctors()
 
@@ -109,10 +137,18 @@ export const aplicarEventosEspeciales = async (
         // Obtener eventos del médico
         const eventosDelMedico = await getEventosByDoctor(medico.id)
 
+        // DEBUG: Mostrar eventos encontrados
+        console.log(`Médico ${medico.nombre} (ID: ${medico.id}) tiene ${eventosDelMedico.length} eventos`)
+        eventosDelMedico.forEach(evento => {
+          console.log(`  - ${evento.type} en ${evento.fechaInicio}`)
+        })
+
         // Filtrar eventos que aplican para este mes
         const eventosDelMes = eventosDelMedico.filter(evento =>
           eventoAplicaEnMes(evento, mes, año)
         )
+
+        console.log(`Eventos que aplican para ${mes + 1}/${año}:`, eventosDelMes.length)
 
         // Crear copia de turnos para modificar
         const turnosActualizados = { ...medico.turnos }
@@ -150,12 +186,14 @@ export const verificarEventosMedicoEnFecha = async (
     const eventos = await getEventosByDoctor(medicoId)
     const eventosEnFecha = eventos.filter(evento => {
       if (evento.type === 'vacaciones' && evento.fechaFin) {
-        const fechaInicio = new Date(evento.fechaInicio)
-        const fechaFin = new Date(evento.fechaFin)
-        return fecha >= fechaInicio && fecha <= fechaFin
+        const fechaInicio = crearFechaSinZonaHoraria(evento.fechaInicio)
+        const fechaFin = crearFechaSinZonaHoraria(evento.fechaFin)
+        const fechaConsulta = crearFechaSinZonaHoraria(fecha.toISOString().split('T')[0])
+        return fechaConsulta >= fechaInicio && fechaConsulta <= fechaFin
       } else {
-        const fechaEvento = new Date(evento.fechaInicio)
-        return fechaEvento.toDateString() === fecha.toDateString()
+        const fechaEvento = crearFechaSinZonaHoraria(evento.fechaInicio)
+        const fechaConsulta = crearFechaSinZonaHoraria(fecha.toISOString().split('T')[0])
+        return fechaEvento.getTime() === fechaConsulta.getTime()
       }
     })
 
@@ -171,7 +209,6 @@ export const verificarEventosMedicoEnFecha = async (
 
 // Función existente (mantener tal como está)
 export const calculateMonthlyHours = (mes: number, año: number): number => {
-  // Corregir: para obtener los días del mes actual, usar mes + 1
   const daysInMonth = new Date(año, mes + 1, 0).getDate()
 
   const colombianHolidays = {
@@ -191,11 +228,9 @@ export const calculateMonthlyHours = (mes: number, año: number): number => {
   let holidays = 0
   let holidaysOnSunday = 0
 
-  // Corregir: usar mes + 1 para los festivos también
   const holidaysInMonth = colombianHolidays[mes + 1] || []
 
   for (let day = 1; day <= daysInMonth; day++) {
-    // Esta línea está correcta - usa mes tal como viene (base 0)
     const date = new Date(año, mes, day)
     const isSunday = date.getDay() === 0
     const isHoliday = holidaysInMonth.includes(day)
@@ -207,15 +242,6 @@ export const calculateMonthlyHours = (mes: number, año: number): number => {
 
   const workingDays = daysInMonth - sundays - holidays + holidaysOnSunday
   const minimumHours = Math.round(workingDays * (44 / 6))
-
-  console.log(`Mes ${mes + 1}/${año}:`, {
-    daysInMonth,
-    sundays,
-    holidays,
-    holidaysOnSunday,
-    workingDays,
-    minimumHours
-  })
 
   return minimumHours
 }

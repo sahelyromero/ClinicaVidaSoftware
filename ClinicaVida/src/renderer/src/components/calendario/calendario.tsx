@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
-import { calculateMonthlyHours } from './calendarioAux'; // IMPORTACIÓN DE LA FUNCIÓN PARA CALCULAR HORAS MENSUALES
+import { aplicarEventosEspeciales } from './calendarioAux'
 
 // Tipos de la base de datos - ACTUALIZADOS para coincidir con db.ts
 interface Doctor {
@@ -17,9 +17,9 @@ interface Doctor {
 
 // CONFIGURACIÓN ACTUALIZADA para coincidir con db.ts
 const DB_NAME = 'ClinicaVidaDB'
-const DB_VERSION = 3  // ← CAMBIADO de 2 a 3
-const DOCTORS_STORE = 'doctors'  // ← RENOMBRADO de STORE_NAME
-const EVENTOS_STORE = 'eventos_especiales'  // ← AGREGADO
+const DB_VERSION = 3
+const DOCTORS_STORE = 'doctors'
+const EVENTOS_STORE = 'eventos_especiales'
 
 let dbInstance: IDBDatabase | null = null
 
@@ -37,7 +37,7 @@ const openDB = async (): Promise<IDBDatabase> => {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result
 
-      // Store de doctores - ACTUALIZADO para coincidir con db.ts
+      // Store de doctores
       if (!db.objectStoreNames.contains(DOCTORS_STORE)) {
         const doctorsStore = db.createObjectStore(DOCTORS_STORE, {
           keyPath: 'id',
@@ -50,7 +50,7 @@ const openDB = async (): Promise<IDBDatabase> => {
         doctorsStore.createIndex('hasSpecialty', 'hasSpecialty', { unique: false })
       }
 
-      // Store de eventos especiales - AGREGADO
+      // Store de eventos especiales
       if (!db.objectStoreNames.contains(EVENTOS_STORE)) {
         const eventosStore = db.createObjectStore(EVENTOS_STORE, {
           keyPath: 'id',
@@ -69,8 +69,8 @@ const getDoctors = async (): Promise<Doctor[]> => {
   const db = await openDB()
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([DOCTORS_STORE], 'readonly')  // ← ACTUALIZADO nombre del store
-    const store = transaction.objectStore(DOCTORS_STORE)  // ← ACTUALIZADO nombre del store
+    const transaction = db.transaction([DOCTORS_STORE], 'readonly')
+    const store = transaction.objectStore(DOCTORS_STORE)
     const request = store.getAll()
 
     request.onsuccess = () => resolve(request.result)
@@ -82,6 +82,7 @@ const getDoctors = async (): Promise<Doctor[]> => {
 type Turno = { [dia: number]: string }
 
 type Medico = {
+  id?: number // ← AGREGAR ID para que funcione con eventos especiales
   nombre: string
   especialidad: string
   turnos: Turno
@@ -103,7 +104,7 @@ const especialidadColor = (especialidad: string) => {
     'Pediatría': '#fff2cc'
   };
   if (!especialidad) {
-    return '#ffd4cc'; // Color por defecto si no hay especialidad
+    return '#ffd4cc';
   }
   else {
     return colores[especialidad] || '#f5f5f5';
@@ -112,6 +113,7 @@ const especialidadColor = (especialidad: string) => {
 
 const convertDoctorToMedico = (doctor: Doctor): Medico => {
   return {
+    id: doctor.id, // ← IMPORTANTE: Preservar el ID
     nombre: doctor.name,
     especialidad: doctor.specialty || doctor.group || 'General',
     turnos: {},
@@ -135,72 +137,84 @@ const Calendario: React.FC = () => {
 
   const dayAbbreviations = ['D', 'L', 'M', 'Mi', 'J', 'V', 'S'];
 
-useEffect(() => {
-  const loadDoctors = async () => {
-try {
-  setLoading(true);
-  setError(null);
+  useEffect(() => {
+    const loadDoctors = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    const doctors = await getDoctors()
-    const medicosFromDB = doctors.map(convertDoctorToMedico);
+        const doctors = await getDoctors()
+        const medicosFromDB = doctors.map(convertDoctorToMedico);
 
-    if (medicosFromDB.length === 0) {
-      const ejemploMedicos: Medico[] = [
-        {
-          nombre: 'Dr. Ejemplo',
-          especialidad: 'General',
-          turnos: { 1: 'C8', 15: 'C10' },
-          horasTrabajadas: 0
+        if (medicosFromDB.length === 0) {
+          const ejemploMedicos: Medico[] = [
+            {
+              nombre: 'Dr. Ejemplo',
+              especialidad: 'General',
+              turnos: { 1: 'C8', 15: 'C10' },
+              horasTrabajadas: 0
+            }
+          ];
+          setMedicos(ejemploMedicos);
+        } else {
+          // Separar médicos por grupo
+          const medicosHospitalizacion = medicosFromDB.filter((m) => m.grupo === 'hospitalización');
+          const medicosUrgencias = medicosFromDB.filter(m => m.grupo === 'urgencias');
+          const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
+
+          // Asignar turnos por separado
+          const medicosHospConTurnos = medicosHospitalizacion.length > 0
+            ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
+            : [];
+
+          const medicosUrgConTurnos = medicosUrgencias.length > 0
+            ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)
+            : [];
+
+          // Los otros médicos sin turnos asignados
+          const medicosOtrosConTurnos = medicosOtros.map(medico => ({ ...medico, turnos: {} }));
+
+          // Combinar todos los médicos
+          const todosMedicos = [
+            ...medicosHospConTurnos,
+            ...medicosUrgConTurnos,
+            ...medicosOtrosConTurnos,
+          ];
+
+          console.log('Médicos antes de aplicar eventos especiales:', todosMedicos);
+
+          // ← APLICAR EVENTOS ESPECIALES - Esta es la parte clave
+          try {
+            const medicosConEventos = await aplicarEventosEspeciales(todosMedicos, selectedMonth, selectedYear);
+            console.log('Médicos después de aplicar eventos especiales:', medicosConEventos);
+            setMedicos(medicosConEventos);
+          } catch (eventError) {
+            console.error('Error al aplicar eventos especiales:', eventError);
+            // Si falla la aplicación de eventos, usar los médicos sin eventos
+            setMedicos(todosMedicos);
+            setError('Los turnos se cargaron pero hubo un error al aplicar eventos especiales');
+          }
         }
-      ];
-      setMedicos(ejemploMedicos);
-    } else {
-      // Separar médicos por grupo
-      const medicosHospitalizacion = medicosFromDB.filter((m) => m.grupo === 'hospitalización');
-      const medicosUrgencias = medicosFromDB.filter(m => m.grupo === 'urgencias');
-      const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
+      } catch (err) {
+        console.error('Error al cargar médicos:', err);
+        setError('Error al cargar los médicos de la base de datos');
 
-      // Asignar turnos por separado
-      const medicosHospConTurnos = medicosHospitalizacion.length > 0
-        ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
-        : [];
-
-      const medicosUrgConTurnos = medicosUrgencias.length > 0
-        ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)
-        : [];
-
-      // Los otros médicos sin turnos asignados
-      const medicosOtrosConTurnos = medicosOtros.map(medico => ({ ...medico, turnos: {} }));
-
-      // Combinar todos los médicos en una sola llamada a setMedicos
-      const todosMedicos = [
-        ...medicosHospConTurnos,
-        ...medicosUrgConTurnos,
-        ...medicosOtrosConTurnos
-      ];
-
-      setMedicos(todosMedicos); // ¡Solo una llamada!
-    }
-  } catch (err) {
-    console.error('Error al cargar médicos:', err);
-    setError('Error al cargar los médicos de la base de datos');
-
-    const ejemploMedicos: Medico[] = [
-      {
-        nombre: 'Error - Datos de ejemplo',
-        especialidad: 'General',
-        turnos: {},
-        horasTrabajadas: 0
+        const ejemploMedicos: Medico[] = [
+          {
+            nombre: 'Error - Datos de ejemplo',
+            especialidad: 'General',
+            turnos: {},
+            horasTrabajadas: 0
+          }
+        ];
+        setMedicos(ejemploMedicos);
+      } finally {
+        setLoading(false);
       }
-    ];
-    setMedicos(ejemploMedicos);
-  } finally {
-    setLoading(false);
-  }
-};
+    };
 
     loadDoctors();
-  }, [selectedMonth, selectedYear]); // 👈 Dependencias para recalcular turnos al cambiar mes/año
+  }, [selectedMonth, selectedYear]);
 
   const getDaysInMonth = () => new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
@@ -234,7 +248,52 @@ try {
     return years;
   };
 
- // Función para recargar médicos
+  // Función para obtener el color del turno según el tipo de evento
+  const getTurnoColor = (turno: string, isWeekend: boolean) => {
+    if (!turno) return '#000000';
+
+    // Colores para eventos especiales
+    const eventColors: { [key: string]: string } = {
+      'V': '#dc2626',   // Vacaciones - Rojo
+      'A': '#16a34a',   // Día familia - Verde
+      'K': '#ea580c',   // Calamidad - Naranja
+      'P': '#7c3aed',   // Permiso personal - Morado
+      'I': '#0891b2',   // Incapacidad - Azul
+      'C4': '#ec4899'   // Cumpleaños - Rosa
+    };
+
+    // Si es un evento especial, usar su color
+    if (eventColors[turno]) {
+      return eventColors[turno];
+    }
+
+    // Si no es evento especial, usar colores normales
+    return isWeekend ? '#dc2626' : '#1d4ed8';
+  };
+
+  // Función para obtener el color de fondo del cuadro del evento
+  const getTurnoBackgroundColor = (turno: string) => {
+    if (!turno) return '#ffffff';
+
+    // Colores de fondo para eventos especiales (más suaves)
+    const eventBackgroundColors: { [key: string]: string } = {
+      'V': '#fecaca',   // Vacaciones - Rojo claro
+      'A': '#bbf7d0',   // Día familia - Verde claro
+      'K': '#fed7aa',   // Calamidad - Naranja claro
+      'P': '#ddd6fe',   // Permiso personal - Morado claro
+      'I': '#bae6fd',   // Incapacidad - Azul claro
+      'C4': '#fbcfe8'   // Cumpleaños - Rosa claro
+    };
+
+    // Si es un evento especial, usar su color de fondo
+    if (eventBackgroundColors[turno]) {
+      return eventBackgroundColors[turno];
+    }
+
+    // Si no es evento especial, usar fondo blanco
+    return '#ffffff';
+  };
+
   if (loading) {
     return (
       <div className="flex-1 overflow-auto p-4">
@@ -265,6 +324,7 @@ try {
           </select>
         </div>
       </div>
+
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
           {error}
@@ -280,6 +340,8 @@ try {
           </p>
         )}
       </div>
+
+
 
       {/* Contenedor con altura y ancho fijos y scrollbar */}
       <div className="border rounded-lg" style={{ height: '630px', width: '1800px', overflowY: 'auto', overflowX: 'auto' }}>
@@ -324,9 +386,9 @@ try {
                   <td className="border px-1 py-1 sticky left-0 z-10 font-semibold text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '30px', width: '30px' }}>{index + 1}</td>
                   <td className="border px-1 py-1 sticky left-8 z-10 font-medium text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '120px', width: '120px', left: '30px' }}>{medico.nombre}</td>
                   <td className="border px-1 py-1 sticky left-8 z-10 font-medium text-xs" style={{ backgroundColor: '#ffffff', borderColor: '#374151', minWidth: '80px', width: '80px', left: '150px' }}>
-                      {medico.grupo
-                        ? medico.grupo.charAt(0).toUpperCase() + medico.grupo.slice(1)
-                        : ''}
+                    {medico.grupo
+                      ? medico.grupo.charAt(0).toUpperCase() + medico.grupo.slice(1)
+                      : ''}
                   </td>
                   <td className="border px-1 py-1 sticky left-32 z-10 text-xs" style={{
                     backgroundColor: especialidadColor(medico.especialidad),
@@ -343,14 +405,14 @@ try {
                     const weekend = isWeekend(day);
                     return (
                       <td key={day} className="border text-center px-1 py-1" style={{
-                        backgroundColor: '#ffffff',
+                        backgroundColor: getTurnoBackgroundColor(turno),
                         borderColor: '#374151',
                         borderWidth: '1px',
                         minWidth: '42px',
                         maxWidth: '42px'
                       }}>
                         <span className="text-xs font-semibold calendar-turno" style={{
-                          color: turno ? (weekend ? '#dc2626' : '#1d4ed8') : '#000000'
+                          color: getTurnoColor(turno, weekend)
                         }}>
                           {turno || ''}
                         </span>

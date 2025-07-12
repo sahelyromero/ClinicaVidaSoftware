@@ -133,4 +133,4 @@ const DoctorsList: React.FC<DoctorsListProps> = ({ doctors, onEdit, onDelete }) 
   );
 };
 
-export default DoctorsList;
+export default DoctorsList

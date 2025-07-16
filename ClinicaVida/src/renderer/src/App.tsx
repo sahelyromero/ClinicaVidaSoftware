@@ -87,12 +87,12 @@ const App = () => {
     if (!idRegex.test(doctorData.idNumber.trim())) validationErrors.push('La identificación solo debe contener números.');
 
     if (doctorData.group === 'hospitalización') {
-        if (!doctorData.hasSpecialty) {
-            validationErrors.push('Debes marcar que el médico tiene una especialidad.');
-        } else if (!doctorData.specialty || doctorData.specialty.trim() === '') {
-            validationErrors.push('Debes seleccionar una especialidad.');
-        }
-     }
+      if (!doctorData.hasSpecialty) {
+        validationErrors.push('Debes marcar que el médico tiene una especialidad.');
+      } else if (!doctorData.specialty || doctorData.specialty.trim() === '') {
+        validationErrors.push('Debes seleccionar una especialidad.');
+      }
+    }
 
     const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
     if (!doctorData.email || !emailRegex.test(doctorData.email.trim())) validationErrors.push('El correo electrónico debe tener un @ y un dominio válido como .com, .org, etc.');
@@ -137,8 +137,8 @@ const App = () => {
   };
 
   const calculateMonthlyHours = (): void => {
-    const [year, month] = selectedMonth.split('-').map(Number)
-    const daysInMonth = new Date(year, month, 0).getDate()
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
     const colombianHolidays = {
       1: [1, 6],
       3: [24],
@@ -150,34 +150,25 @@ const App = () => {
       10: [13],
       11: [3, 17],
       12: [8, 25]
-    }
+    };
 
-    let sundays = 0
-    let holidays = 0
-    let holidaysOnSunday = 0
-
-    const holidaysInMonth = colombianHolidays[month] || []
+    let sundays = 0, holidays = 0, holidaysOnSunday = 0;
+    const holidaysInMonth = colombianHolidays[month] || [];
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month - 1, day)
-      const isSunday = date.getDay() === 0
-      const isHoliday = holidaysInMonth.includes(day)
-
-      if (isSunday) sundays++
-      if (isHoliday) holidays++
-      if (isSunday && isHoliday) holidaysOnSunday++
+      const date = new Date(year, month - 1, day);
+      const isSunday = date.getDay() === 0;
+      const isHoliday = holidaysInMonth.includes(day);
+      if (isSunday) sundays++;
+      if (isHoliday) holidays++;
+      if (isSunday && isHoliday) holidaysOnSunday++;
     }
 
-    const workingDays = daysInMonth - sundays - holidays + holidaysOnSunday
-    const minimumHours = Math.round(workingDays * (44 / 6))
+    const workingDays = daysInMonth - sundays - holidays + holidaysOnSunday;
+    const minimumHours = Math.round(workingDays * (44 / 6));
 
-    setMonthlyHours([{doctorId: 'system',
-        doctorName: 'Horas Mínimas del Mes',
-        totalHours: minimumHours,
-        availableHours: workingDays,
-        workingDays
-      }])
-  }
+    setMonthlyHours([{ doctorId: 'system', doctorName: 'Horas Mínimas del Mes', totalHours: minimumHours, availableHours: workingDays, workingDays }]);
+  };
 
   const handleOpenCalendarModal = () => setShowCalendarModal(true);
   const handleCloseCalendarModal = () => setShowCalendarModal(false);
@@ -187,17 +178,17 @@ const App = () => {
       case 'addDoctor':
         return <DoctorForm doctorData={doctorData} showSpecialtyField={showSpecialtyField} isEditing={isEditing} handleInputChange={handleInputChange} handleSubmit={handleSubmit} resetForm={resetForm} formErrors={formErrors} specialtyError={specialtyError} />;
       case 'doctorsList':
-        return <DoctorsList doctors={doctors} onEdit={handleEdit} onDelete={handleDelete} />
+        return <DoctorsList doctors={doctors} onEdit={handleEdit} onDelete={handleDelete} />;
       case 'legal':
-        return <LegalRequirements legalRequirements={legalRequirements} />
+        return <LegalRequirements legalRequirements={legalRequirements} />;
       case 'policies':
-        return <InternalPolicies internalPolicies={internalPolicies} />
+        return <InternalPolicies internalPolicies={internalPolicies} />;
       case 'hours':
         return <MonthlyHours selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} calculateMonthlyHours={calculateMonthlyHours} monthlyHours={monthlyHours} hasDoctors={doctors.length > 0} />;
       case 'assign':
         return <ShiftAssignment shiftAssignments={shiftAssignments} onGenerate={() => window.electronAPI.openChildWindow()} />;
       case 'eventoEspecial':
-        return <EventosEspeciales />
+        return <EventosEspeciales />;
       default:
         return (
           <div className="p-4 text-center">
@@ -222,52 +213,54 @@ const App = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6] overflow-y-auto">
-      <div className="w-full px-4 py-2 flex-grow">
-        {/* Header compacto */}
-        <div className="hero-container mb-4">
-          <img src={Icon} alt="Logo" className="hero-logo" />
-        </div>
+    return (
+  <div className="min-h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6]">
+    {/* Header fijo */}
+    <div className="flex-shrink-0 px-4 py-2">
+      <div className="hero-container mb-4">
+        <img src={Icon} alt="Logo" className="hero-logo" />
+      </div>
 
-        <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-4 overflow-x-auto">
+      <header className="bg-[#22335d] text-[#9280b6] p-4 rounded-lg shadow-lg mb-4">
         <h1 className="main-heading mb-4">Organizador de turnos médicos</h1>
 
         <nav className="flex gap-1 overflow-x-auto whitespace-nowrap flex-nowrap w-full">
-            {[
-              ['dashboard', 'Dashboard'],
-              ['addDoctor', 'Agregar Médico'],
-              ['doctorsList', 'Lista de Médicos'],
-              ['eventoEspecial', 'Evento Especial'],
-              ['hours', 'Horas Laborales'],
-              ['assign', 'Asignar Turnos'],
-              ['legal', 'Requerimientos Legales'],
-              ['policies', 'Políticas Internas']
-            ].map(([tab, label]) => (
-              <button
-                key={tab}
-                onClick={() => handleNavClick(tab)}
-                className={`custom-button text-[0.65rem] px-1.5 py-1 whitespace-nowrap min-w-fit shrink-0 ${activeTab === tab ? 'active-button' : ''}`}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        </header>
-
-        {/* Contenido principal */}
-        <main className="main-content bg-white rounded-xl shadow-md p-6 mb-4 flex-grow">
-          {renderContent()}
-        </main>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-[#22335d] text-[#9280b6] text-center p-4 flex-shrink-0">
-        <p className="text-sm">© {new Date().getFullYear()} Grupo 2.1 - Ingeniería de Software 2025-1 - Universidad Nacional de Colombia Sede Medellín</p>
-      </footer>
-
-      <CalendarModal show={showCalendarModal} onClose={handleCloseCalendarModal} />
+          {[
+            ['dashboard', 'Dashboard'],
+            ['addDoctor', 'Agregar Médico'],
+            ['doctorsList', 'Lista de Médicos'],
+            ['eventoEspecial', 'Evento Especial'],
+            ['hours', 'Horas Laborales'],
+            ['assign', 'Asignar Turnos'],
+            ['legal', 'Requerimientos Legales'],
+            ['policies', 'Políticas Internas']
+          ].map(([tab, label]) => (
+            <button
+              key={tab}
+              onClick={() => handleNavClick(tab)}
+              className={`custom-button text-[0.65rem] px-1.5 py-1 whitespace-nowrap min-w-fit shrink-0 ${activeTab === tab ? 'active-button' : ''}`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </header>
     </div>
+
+    {/* Contenido principal con scroll SI es necesario */}
+    <div className="flex-1 px-4 scroll-invisible">
+      <main className="main-content bg-white rounded-xl shadow-md p-6 mb-4">
+        {renderContent()}
+      </main>
+    </div>
+
+    {/* Footer fijo */}
+    <footer className="flex-shrink-0 bg-[#22335d] text-[#9280b6] text-center p-4">
+      <p className="text-sm">© {new Date().getFullYear()} Grupo 2.1 - Ingeniería de Software 2025-1 - Universidad Nacional de Colombia Sede Medellín</p>
+    </footer>
+
+    <CalendarModal show={showCalendarModal} onClose={handleCloseCalendarModal} />
+  </div>
   );
 };
 

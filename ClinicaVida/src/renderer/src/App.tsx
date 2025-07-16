@@ -196,15 +196,15 @@ const App = () => {
             <p className="mb-6">Sistema de Gestión de Turnos Médicos - Clínica Vida</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
               <div className="bg-blue-100 p-4 rounded-lg">
-                <h3 className="font-bold text-blue-800">Médicos Registrados</h3>
+                <h3 className="font-bold text-blue-900">Médicos Registrados</h3>
                 <p className="text-2xl font-bold text-blue-600">{doctors.length}</p>
               </div>
               <div className="bg-green-100 p-4 rounded-lg">
-                <h3 className="font-bold text-green-800">Especialistas</h3>
+                <h3 className="font-bold text-green-900">Especialistas</h3>
                 <p className="text-2xl font-bold text-green-600">{doctors.filter(d => d.hasSpecialty).length}</p>
               </div>
               <div className="bg-purple-100 p-4 rounded-lg">
-                <h3 className="font-bold text-purple-800">Médicos Generales</h3>
+                <h3 className="font-bold text-purple-900">Médicos Generales</h3>
                 <p className="text-2xl font-bold text-purple-600">{doctors.filter(d => !d.hasSpecialty).length}</p>
               </div>
             </div>
@@ -214,8 +214,8 @@ const App = () => {
   };
 
     return (
-  <div className="min-h-screen flex flex-col bg-[#f9eef5] font-lato text-[#9280b6]">
-    {/* Header fijo */}
+  <div className="min-h-screen flex flex-col bg-[#f9eef5] text-[#9280b6]" style={{ fontFamily: '"Century Gothic", "Segoe UI", Arial, sans-serif' }}>
+    {/*  fijo */}
     <div className="flex-shrink-0 px-4 py-2">
       <div className="hero-container mb-4">
         <img src={Icon} alt="Logo" className="hero-logo" />

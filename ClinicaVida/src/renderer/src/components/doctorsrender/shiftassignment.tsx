@@ -33,8 +33,7 @@ const ShiftAssignment: React.FC<ShiftAssignmentProps> = ({
 
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
         <p className="text-blue-800">
-          <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente. Recuerda que esto es una versión beta
-          por lo que no se cumplen los requerimientos legales ni los de políticas internas.
+          <strong>Instrucciones:</strong> Presiona "Generar Cuadro de Turnos" para ver el calendario de turnos en una ventana emergente.
         </p>
       </div>
 

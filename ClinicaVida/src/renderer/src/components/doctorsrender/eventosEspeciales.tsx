@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDoctors, addEventoEspecial, getEventosEspeciales } from '../../database/db';
+import { getDoctors, addEventoEspecial, getEventosEspeciales, deleteEventoEspecial } from '../../database/db';
 import {
   Doctor,
   EventoEspecial,
@@ -20,8 +20,6 @@ const EventosEspeciales: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
   const [eventType, setEventType] = useState('');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [fechaFin, setFechaFin] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,6 +27,9 @@ const EventosEspeciales: React.FC = () => {
   const [eventos, setEventos] = useState<EventoEspecial[]>([]);
   const [loadingEventos, setLoadingEventos] = useState(false);
   const [isAdding, setIsAdding] = useState(true);
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetch = async () => {
@@ -66,6 +67,11 @@ const EventosEspeciales: React.FC = () => {
     }
   };
 
+  const parseLocalDate = (str: string) => {
+    const [year, month, day] = str.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const error = validateForm(selectedDoctor, eventType, fechaInicio, fechaFin);
@@ -76,10 +82,11 @@ const EventosEspeciales: React.FC = () => {
       const evento: Omit<EventoEspecial, 'id' | 'fechaCreacion'> = {
         doctorId: selectedDoctor!,
         type: eventType as EventoEspecial['type'],
-        fechaInicio: new Date(fechaInicio),
-        fechaFin: eventType === 'vacaciones' ? new Date(fechaFin) : undefined,
+        fechaInicio: parseLocalDate(fechaInicio),
+        fechaFin: eventType === 'vacaciones' ? parseLocalDate(fechaFin) : undefined,
         descripcion: descripcion || undefined
       };
+
       await addEventoEspecial(evento);
       resetForm();
       setShowSuccessModal(true);
@@ -88,6 +95,20 @@ const EventosEspeciales: React.FC = () => {
       setErrorMessage('Error al registrar el evento especial');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+      try {
+        setDeletingId(id);
+        await deleteEventoEspecial(id);
+        await loadEventos();
+      } catch (error) {
+        setErrorMessage('Error al eliminar el evento');
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -280,6 +301,7 @@ const EventosEspeciales: React.FC = () => {
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Fecha Inicio</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Fecha Fin</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Descripción</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -299,6 +321,18 @@ const EventosEspeciales: React.FC = () => {
                         </td>
                         <td className="px-3 py-2 text-xs text-gray-500 max-w-xs truncate" title={e.descripcion || '-'}>
                           {e.descripcion || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-500">
+                          <button
+                          onClick={() => e.id && handleDeleteEvent(e.id)}
+                          disabled={deletingId === e.id}
+                          className={`custom-button delete-button text-sm px-2 py-1 m-1 ${
+                            deletingId === e.id ? 'opacity-70 cursor-not-allowed' : ''
+                          }`}
+                          title="Eliminar evento"
+                        >
+                          {deletingId === e.id ? 'Eliminando...' : 'Eliminar'}
+                        </button>
                         </td>
                       </tr>
                     ))}

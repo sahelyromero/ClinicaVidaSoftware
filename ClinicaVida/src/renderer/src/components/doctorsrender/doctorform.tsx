@@ -1,4 +1,3 @@
-// DoctorForm.tsx
 import React from 'react';
 import { Doctor } from '../../database/db';
 
@@ -9,9 +8,8 @@ interface DoctorFormProps {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   resetForm: () => void;
-  formErrors: string[]; // ✅ nuevo prop para mostrar errores
+  formErrors: string[];
   specialtyError: string | null;
-
 }
 
 const DoctorForm: React.FC<DoctorFormProps> = ({
@@ -23,15 +21,13 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
   resetForm,
   formErrors,
   specialtyError
-  
 }) => {
   return (
-    <div className="doctor-form-container">
+    <div className="doctor-form-container" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
       <h2 className="text-xl font-bold mb-3">
         {isEditing ? 'Editar Médico' : 'Agregar Médico'}
       </h2>
 
-      {/* ✅ Mostrar errores si existen */}
       {formErrors.length > 0 && (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded mb-4">
           <ul className="list-disc ml-5">
@@ -44,7 +40,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="input-group">
-          <label>Nombre Completo</label>
+          <label className="font-century-gothic">Nombre Completo</label>
           <input
             type="text"
             name="name"
@@ -57,7 +53,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
           />
         </div>
         <div className="input-group">
-          <label>Número de Identificación</label>
+          <label className="font-century-gothic">Número de Identificación</label>
           <input
             type="text"
             name="idNumber"
@@ -70,7 +66,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
           />
         </div>
         <div className="input-group">
-          <label>Correo Electrónico</label>
+          <label className="font-century-gothic">Correo Electrónico</label>
           <input
             type="email"
             name="email"
@@ -83,7 +79,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
           />
         </div>
         <div className="input-group">
-          <label>Fecha de Nacimiento</label>
+          <label className="font-century-gothic">Fecha de Nacimiento</label>
           <input
             type="date"
             name="birthDate"
@@ -94,7 +90,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
           />
         </div>
         <div className="input-group">
-          <label>Grupo de Trabajo</label>
+          <label className="font-century-gothic">Grupo de Trabajo</label>
           <select
             name="group"
             value={doctorData.group}
@@ -109,7 +105,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
 
         {doctorData.group !== 'urgencias' && (
           <div className="input-group">
-            <label className="flex items-center">
+            <label className="flex items-center font-century-gothic">
               <input
                 type="checkbox"
                 name="hasSpecialty"
@@ -122,14 +118,14 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         )}
 
         {doctorData.group === 'urgencias' && (
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1 font-century-gothic">
             Los médicos de urgencias no requieren especialidad.
           </p>
         )}
 
         {showSpecialtyField && (
           <div className="input-group">
-            <label className="block text-sm font-medium">Especialidad</label>
+            <label className="block text-sm font-medium font-century-gothic">Especialidad</label>
             <select
               name="specialty"
               value={doctorData.specialty}
@@ -149,11 +145,10 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
               <option value="Refuerzo">Refuerzo</option>
             </select>
             {specialtyError && (
-              <p className="text-sm text-red-600 mt-1">{specialtyError}</p>
+              <p className="text-sm text-red-600 mt-1 font-century-gothic">{specialtyError}</p>
             )}
           </div>
         )}
-
 
         <div className="form-actions">
           <button type="submit" className="custom-button">

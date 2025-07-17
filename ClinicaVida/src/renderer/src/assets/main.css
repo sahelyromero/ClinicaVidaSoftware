@@ -1,5 +1,27 @@
 @import './base.css';
 
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f4e6f9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a678b4;
+  border-radius: 10px;
+  border: 2px solid #f4e6f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8c5da1;
+}
+
+/* Estilos base */
 body {
   display: flex;
   align-items: center;
@@ -8,6 +30,23 @@ body {
   background-image: url('./wavy-lines.svg');
   background-size: cover;
   user-select: none;
+  scrollbar-width: thin;
+  scrollbar-color: #087ea4 var(--color-background-mute);
+}
+
+/* Contenedores con scroll */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #087ea4 var(--color-background-mute);
+  overflow-y: auto;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(315deg, #3178c6 0%, #f0dc4e 100%);
 }
 
 code {
@@ -168,4 +207,39 @@ code {
   .actions {
     display: none;
   }
+}
+
+.scroll-container,
+.doctor-form-container,
+.doctor-list-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbb7df #f4e6f9;
+  overflow-y: auto;
+}
+
+.scroll-container::-webkit-scrollbar,
+.doctor-form-container::-webkit-scrollbar,
+.doctor-list-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-track,
+.doctor-form-container::-webkit-scrollbar-track,
+.doctor-list-container::-webkit-scrollbar-track {
+  background: #f4e6f9;
+  border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb,
+.doctor-form-container::-webkit-scrollbar-thumb,
+.doctor-list-container::-webkit-scrollbar-thumb {
+  background: #a678b4;
+  border-radius: 10px;
+  border: 2px solid #f4e6f9;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover,
+.doctor-form-container::-webkit-scrollbar-thumb:hover,
+.doctor-list-container::-webkit-scrollbar-thumb:hover {
+  background: #8c5da1;
 }

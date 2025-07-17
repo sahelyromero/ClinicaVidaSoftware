@@ -282,6 +282,181 @@ export const asignarTurnosHospitalizacion = (
   })
 }
 
+// Función para obtener los fines de semana de un mes
+export const getFinesDeSemana = (mes: number, año: number): number[][] => {
+  const finesDeSemana: number[][] = []
+  const diasDelMes = new Date(año, mes + 1, 0).getDate()
+
+  let finDeSemanaActual: number[] = []
+
+  for (let dia = 1; dia <= diasDelMes; dia++) {
+    const fecha = new Date(año, mes, dia)
+    const diaSemana = fecha.getDay() // 0 = Domingo, 6 = Sábado
+
+    if (diaSemana === 0 || diaSemana === 6) { // Es sábado o domingo
+      finDeSemanaActual.push(dia)
+    } else {
+      // Si no es fin de semana y tenemos días acumulados, es un fin de semana completo
+      if (finDeSemanaActual.length > 0) {
+        finesDeSemana.push(finDeSemanaActual)
+        finDeSemanaActual = []
+      }
+    }
+  }
+
+  // Añadir el último fin de semana si el mes termina en sábado/domingo
+  if (finDeSemanaActual.length > 0) {
+    finesDeSemana.push(finDeSemanaActual)
+  }
+
+  return finesDeSemana
+}
+
+// Función para asignar turnos de fin de semana a hospitalización
+export const asignarTurnosFinDeSemanaHospitalizacion = (
+  medicos: Medico[],
+  mes: number,
+  año: number,
+  horasMaximasMes: number = calculateMonthlyHours(mes, año),
+  horasTurnoFinDeSemana: number = 10
+): Medico[] => {
+  // Realiza una copia profunda para no modificar el array original directamente
+  const medicosCopia: Medico[] = JSON.parse(JSON.stringify(medicos));
+
+  const finesDeSemana = getFinesDeSemana(mes, año);
+  const diasDelMes = new Date(año, mes + 1, 0).getDate();
+  const todosDias = Array.from({length: diasDelMes}, (_, i) => i + 1); // Array de 1 a 30/31
+
+  // Función auxiliar para ajustar horas excedentes
+  const ajustarHorasExcedentes = (medico: Medico) => {
+    let horasExcedente = (medico.horasTrabajadas || 0) - horasMaximasMes;
+    if (horasExcedente <= 0) return;
+
+    console.warn(`Ajustando horas excedidas para ${medico.nombre}. Excede por ${horasExcedente} horas.`);
+
+    // 1. Buscar y eliminar domingos asignados (prioridad alta)
+    const domingosAsignados = todosDias.filter(dia => {
+      const fecha = new Date(año, mes, dia);
+      return fecha.getDay() === 0 && medico.turnos[dia] === 'C10';
+    }).sort((a, b) => b - a); // Ordenar de mayor a menor día para eliminar los últimos domingos primero
+
+    for (const dia of domingosAsignados) {
+      if (horasExcedente > 0) {
+        delete medico.turnos[dia];
+        medico.horasTrabajadas = (medico.horasTrabajadas || 0) - horasTurnoFinDeSemana;
+        horasExcedente -= horasTurnoFinDeSemana;
+        console.log(`  - Eliminado turno C10 del día ${dia} (Domingo) para ${medico.nombre}. Horas restantes: ${medico.horasTrabajadas}`);
+      } else {
+        break; // Ya no hay excedente
+      }
+    }
+
+    // 2. Si aún hay excedente, buscar y eliminar sábados asignados
+    const sabadosAsignados = todosDias.filter(dia => {
+      const fecha = new Date(año, mes, dia);
+      return fecha.getDay() === 6 && medico.turnos[dia] === 'C10';
+    }).sort((a, b) => b - a); // Ordenar de mayor a menor día
+
+    for (const dia of sabadosAsignados) {
+      if (horasExcedente > 0) {
+        delete medico.turnos[dia];
+        medico.horasTrabajadas = (medico.horasTrabajadas || 0) - horasTurnoFinDeSemana;
+        horasExcedente -= horasTurnoFinDeSemana;
+        console.log(`  - Eliminado turno C10 del día ${dia} (Sábado) para ${medico.nombre}. Horas restantes: ${medico.horasTrabajadas}`);
+      } else {
+        break;
+      }
+    }
+
+    // 3. Si aún hay excedente (lo cual no debería pasar con la lógica actual, pero como fallback)
+    //    Se podrían eliminar otros turnos si fuera necesario, pero la instrucción es preferir domingos.
+    if (horasExcedente > 0) {
+      console.warn(`  - Advertencia: ${medico.nombre} aún excede horas (${horasExcedente}) después de eliminar fines de semana. Considerar ajuste manual.`);
+    }
+  };
+
+  // Especialidades disponibles (las cirugías se agruparán bajo "cirugía")
+  const especialidadesCirugia = [
+    'cirugía oncológica',
+    'cirugía de tórax', 
+    'cirugía hepatobiliar'
+  ];
+
+  const otrasEspecialidades = [
+    'oncología',
+    'hemato-oncología',
+    'medicina interna',
+    'dolor y cuidados paliativos',
+    'refuerzo'
+  ];
+
+  finesDeSemana.forEach(fds => {
+    const especialidadesAsignadasEsteFDS = new Set<string>();
+    const cirugiasAsignadasEsteFDS = []; // Para rastrear médicos de cirugía asignados en este FDS
+    
+    // Ordenar médicos disponibles por horas trabajadas para balancear la carga
+    const medicosDisponiblesParaFDS = medicosCopia
+      .filter(m => m.grupo === 'hospitalización')
+      .filter(m => fds.every(dia => !m.turnos[dia])) // Asegurarse de que no tengan turnos ya asignados en este FDS
+      .sort((a, b) => (a.horasTrabajadas || 0) - (b.horasTrabajadas || 0)); // Priorizar los con menos horas
+
+    // 1. Asignar las "otras especialidades" (1 médico por especialidad)
+    otrasEspecialidades.forEach(especialidad => {
+      const medicoParaAsignar = medicosDisponiblesParaFDS.find(medico => {
+        return medico.especialidad.toLowerCase() === especialidad.toLowerCase() &&
+               !especialidadesAsignadasEsteFDS.has(especialidad) &&
+               ((medico.horasTrabajadas || 0) + (horasTurnoFinDeSemana * fds.length) <= horasMaximasMes);
+      });
+
+      if (medicoParaAsignar) {
+        fds.forEach(dia => {
+          medicoParaAsignar.turnos[dia] = 'C10';
+        });
+        medicoParaAsignar.horasTrabajadas = (medicoParaAsignar.horasTrabajadas || 0) + (horasTurnoFinDeSemana * fds.length);
+        especialidadesAsignadasEsteFDS.add(especialidad);
+        console.log(`[1/1] Asignado C10 a ${medicoParaAsignar.nombre} (${medicoParaAsignar.especialidad}) para FDS ${fds.join(',')}`);
+      }
+    });
+
+    // 2. Asignar cirugías (máximo 2 médicos para todo el grupo de cirugía)
+    medicosDisponiblesParaFDS.forEach(medico => {
+      const espec = medico.especialidad.toLowerCase();
+      
+      if (especialidadesCirugia.includes(espec) && 
+          cirugiasAsignadasEsteFDS.length < 2 &&
+          !especialidadesAsignadasEsteFDS.has('cirugía')) { // Usamos 'cirugía' como clave para el Set
+          
+        const horasTotalesPrevistas = (medico.horasTrabajadas || 0) + horasTurnoFinDeSemana * fds.length;
+        
+        if (horasTotalesPrevistas <= horasMaximasMes) {
+          fds.forEach(dia => {
+            medico.turnos[dia] = 'C10';
+          });
+          medico.horasTrabajadas = horasTotalesPrevistas;
+          cirugiasAsignadasEsteFDS.push(medico);
+          especialidadesAsignadasEsteFDS.add('cirugía'); // Marcamos que ya asignamos del grupo cirugía
+          console.log(`[${cirugiasAsignadasEsteFDS.length}/2] Asignado C10 a cirujano ${medico.nombre} (${medico.especialidad}) para FDS ${fds.join(',')}`);
+        }
+      }
+    });
+
+    if (especialidadesAsignadasEsteFDS.size === 0) {
+      console.warn(`⚠️ No se asignaron médicos para el fin de semana ${fds.join(',')}`);
+    }
+  });
+
+  // Paso final: Ajustar horas de todos los médicos de hospitalización si exceden el límite
+  medicosCopia.forEach(medico => {
+    if (medico.grupo === 'hospitalización' && (medico.horasTrabajadas || 0) > horasMaximasMes) {
+      ajustarHorasExcedentes(medico);
+    }
+  });
+
+  return medicosCopia;
+};
+
+
+
 // Función para obtener estadísticas de asignación
 export const obtenerEstadisticasAsignacion = (medicos: Medico[]): any => {
   const medicosUrgencias = medicos.filter(m => m.grupo === 'urgencias')

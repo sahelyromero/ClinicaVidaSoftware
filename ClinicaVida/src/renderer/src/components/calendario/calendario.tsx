@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { asignarTurnosHospitalizacion, asignarTurnosUrgencias } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
+import { asignarTurnosHospitalizacion, asignarTurnosUrgencias, asignarTurnosFinDeSemanaHospitalizacion } from './calendario-func'; // IMPORTACIÓN DE LA LÓGICA
 import { aplicarEventosEspeciales } from './calendarioAux'
 
 // Tipos de la base de datos - ACTUALIZADOS para coincidir con db.ts
@@ -163,9 +163,10 @@ const Calendario: React.FC = () => {
           const medicosOtros = medicosFromDB.filter(m => !m.grupo || (m.grupo !== 'hospitalización' && m.grupo !== 'urgencias'));
 
           // Asignar turnos por separado
-          const medicosHospConTurnos = medicosHospitalizacion.length > 0
+          let medicosHospConTurnos = medicosHospitalizacion.length > 0
             ? asignarTurnosHospitalizacion(medicosHospitalizacion, selectedMonth, selectedYear)
             : [];
+          medicosHospConTurnos = asignarTurnosFinDeSemanaHospitalizacion(medicosHospConTurnos, selectedMonth, selectedYear);
 
           const medicosUrgConTurnos = medicosUrgencias.length > 0
             ? asignarTurnosUrgencias(medicosUrgencias, selectedMonth, selectedYear)

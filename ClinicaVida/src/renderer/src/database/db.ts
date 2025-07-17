@@ -17,7 +17,7 @@ export interface Doctor {
   birthDate: string
   hasSpecialty: boolean
   specialty?: string
-  group?: 'urgencias' | 'hospitalización' | 'refuerzo'
+  group?: 'urgencias' | 'hospitalización'
   email?: string
   horasTrabajadas: number
 }

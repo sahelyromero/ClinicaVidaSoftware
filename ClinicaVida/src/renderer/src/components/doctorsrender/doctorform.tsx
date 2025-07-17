@@ -90,7 +90,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
           />
         </div>
         <div className="input-group">
-          <label className="font-century-gothic">Grupo de Trabajo</label>
+          <label className="font-century-gothic">Grupo de Trabajo* (Obligatorio)</label>
           <select
             name="group"
             value={doctorData.group}

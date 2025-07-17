@@ -234,25 +234,28 @@ const EventosEspeciales: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-3">
-                  <input
-                    type="date"
-                    value={fechaInicio}
-                    onChange={e => setFechaInicio(e.target.value)}
-                    className="input"
-                    required
-                  />
-                  {eventType === 'vacaciones' && (
+                <label>Día Inicio:</label>
+                <input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                  className="input"
+                  required
+                />
+
+                {eventType === 'vacaciones' && (
+                  <>
+                    <label>Día Final:</label>
                     <input
                       type="date"
                       value={fechaFin}
-                      onChange={e => setFechaFin(e.target.value)}
+                      onChange={(e) => setFechaFin(e.target.value)}
                       className="input"
                       required
                       min={fechaInicio}
                     />
-                  )}
-                </div>
+                  </>
+                )}
 
                 <textarea
                   value={descripcion}

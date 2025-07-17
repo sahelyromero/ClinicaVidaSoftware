@@ -8,7 +8,7 @@ export interface Doctor {
   birthDate: string
   hasSpecialty: boolean
   specialty?: string
-  group?: 'urgencias' | 'hospitalización' | 'refuerzo'
+  group?: 'urgencias' | 'hospitalización'
   email?: string
   horasTrabajadas: number
 }
@@ -35,7 +35,6 @@ export const TIPOS_EVENTO = [
 export const GRUPOS_MEDICOS = [
   { value: 'urgencias', label: 'Urgencias' },
   { value: 'hospitalización', label: 'Hospitalización' },
-  { value: 'refuerzo', label: 'Refuerzo' }
 ] as const
 
 // Funciones de validación

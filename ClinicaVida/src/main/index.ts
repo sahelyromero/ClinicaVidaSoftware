@@ -13,7 +13,7 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: path.join(app.getAppPath(), 'resources', 'icon.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -21,8 +21,10 @@ function createWindow(): void {
   });
 
   mainWindow.on('ready-to-show', () => {
+    mainWindow?.maximize(); // ✅ abrir maximizada
     mainWindow?.show();
   });
+
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -56,8 +58,10 @@ function createChildWindow(): void {
   });
 
   childWindow.once('ready-to-show', () => {
+    childWindow?.maximize(); // ✅ abrir maximizada
     childWindow?.show();
   });
+
 
   childWindow.on('closed', () => {
     childWindow = null;

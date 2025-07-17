@@ -81,7 +81,7 @@ export const filterDoctors = (
 export const getAvailableSpecialties = (doctors: Doctor[], selectedGroup: string): string[] => {
   if (selectedGroup === 'hospitalización') {
     const hospitalizationDoctors = doctors.filter(d => d.group === 'hospitalización')
-    return [...new Set(hospitalizationDoctors.map(d => d.specialty).filter(Boolean))]
+    return [...new Set(hospitalizationDoctors.map(d => d.specialty).filter((specialty): specialty is string => specialty !== undefined))]
   }
   return []
 }
@@ -90,9 +90,18 @@ export const getAvailableSpecialties = (doctors: Doctor[], selectedGroup: string
 interface SuccessModalProps {
   show: boolean
   onClose: () => void
+  message?: string // Prop opcional para mensaje personalizado
 }
 
-export const SuccessModal: React.FC<SuccessModalProps> = ({ show, onClose }) => {
+export const SuccessModal: React.FC<SuccessModalProps> = ({ 
+  show, 
+  onClose, 
+  message
+}) => {
+  // Mensaje por defecto si no se proporciona uno personalizado
+  const displayMessage = message || "El evento especial ha sido registrado correctamente.";
+  
+
   if (!show) return null
 
   return (
@@ -159,7 +168,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ show, onClose }) => 
           fontSize: '16px',
           lineHeight: '1.5'
         }}>
-          El evento especial ha sido registrado correctamente.
+          {displayMessage}
         </p>
 
         <button

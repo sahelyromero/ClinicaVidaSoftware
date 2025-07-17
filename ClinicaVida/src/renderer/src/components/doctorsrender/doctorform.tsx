@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Doctor } from '../../database/db';
+import { SuccessModal } from './eventosEspecialesHelpers';
 
 interface DoctorFormProps {
   doctorData: Omit<Doctor, 'id'>;
@@ -22,6 +23,57 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
   formErrors,
   specialtyError
 }) => {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previousErrorsLength, setPreviousErrorsLength] = useState(formErrors.length);
+
+  // Efecto para detectar cuando se resuelve exitosamente el formulario
+  useEffect(() => {
+    // Si estaba enviando y ahora no hay errores, mostrar éxito
+    if (isSubmitting && formErrors.length === 0 && previousErrorsLength >= 0) {
+      const message = isEditing 
+        ? 'Los cambios en este médico han sido guardados correctamente'
+        : 'El médico ha sido registrado correctamente';
+      
+      setSuccessMessage(message);
+      setShowSuccessModal(true);
+      setIsSubmitting(false);
+    }
+    // Si hay errores, detener el estado de envío
+    else if (isSubmitting && formErrors.length > 0) {
+      setIsSubmitting(false);
+    }
+    
+    setPreviousErrorsLength(formErrors.length);
+  }, [formErrors, isSubmitting, isEditing, previousErrorsLength]);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Ejecutar la función handleSubmit del padre
+      await handleSubmit(e);
+    } catch (error) {
+      console.error('Error al procesar el formulario:', error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowSuccessModal(false);
+    // Si no estamos editando, resetear el formulario después de agregar
+    if (!isEditing) {
+      resetForm();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowSuccessModal(false);
+    resetForm();
+  };
+
   return (
     <div className="doctor-form-container" style={{ fontFamily: "'Century Gothic', sans-serif" }}>
       <h2 className="text-xl font-bold mb-3">
@@ -38,7 +90,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleFormSubmit} className="space-y-4">
         <div className="input-group">
           <label className="font-century-gothic">Nombre Completo</label>
           <input
@@ -50,6 +102,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             className="input"
             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$"
             title="Solo se permiten letras"
+            disabled={isSubmitting}
           />
         </div>
         <div className="input-group">
@@ -63,6 +116,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             className="input"
             pattern="^\d+$"
             title="Solo se permiten números"
+            disabled={isSubmitting}
           />
         </div>
         <div className="input-group">
@@ -76,6 +130,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             className="input"
             pattern="^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$"
             title="Debe incluir un correo válido con @ y dominio (.com, .org, .co, etc.)"
+            disabled={isSubmitting}
           />
         </div>
         <div className="input-group">
@@ -87,6 +142,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             onChange={handleInputChange}
             required
             className="input"
+            disabled={isSubmitting}
           />
         </div>
         <div className="input-group">
@@ -97,6 +153,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             onChange={handleInputChange}
             required
             className="input"
+            disabled={isSubmitting}
           >
             <option value="urgencias">Urgencias</option>
             <option value="hospitalización">Hospitalización</option>
@@ -111,6 +168,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                 name="hasSpecialty"
                 checked={doctorData.hasSpecialty}
                 onChange={handleInputChange}
+                disabled={isSubmitting}
               />
               <span className="ml-2">¿Tiene especialidad?</span>
             </label>
@@ -132,7 +190,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
               onChange={handleInputChange}
               className={`input ${specialtyError ? 'border-red-500' : ''}`}
               required
-              disabled={doctorData.group === 'urgencias'}
+              disabled={doctorData.group === 'urgencias' || isSubmitting}
             >
               <option value="">Seleccionar especialidad</option>
               <option value="Oncología">Oncología</option>
@@ -141,7 +199,6 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
               <option value="Dolor y cuidados paliativos">Dolor y cuidados paliativos</option>
               <option value="Cirugía oncológica">Cirugía oncológica</option>
               <option value="Cirugía de tórax">Cirugía de tórax</option>
-              <option value="Cirugía hepatobiliar">Cirugía hepatobiliar</option>
               <option value="Refuerzo">Refuerzo</option>
             </select>
             {specialtyError && (
@@ -151,20 +208,34 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         )}
 
         <div className="form-actions">
-          <button type="submit" className="custom-button">
-            {isEditing ? 'Guardar Cambios' : 'Agregar Médico'}
+          <button 
+            type="submit" 
+            className="custom-button"
+            disabled={isSubmitting}
+          >
+            {isSubmitting 
+              ? (isEditing ? 'Guardando...' : 'Agregando...')
+              : (isEditing ? 'Guardar Cambios' : 'Agregar Médico')
+            }
           </button>
           {isEditing && (
             <button
               type="button"
-              onClick={resetForm}
+              onClick={handleCancelEdit}
               className="custom-button bg-gray-500 hover:bg-gray-600"
+              disabled={isSubmitting}
             >
               Cancelar
             </button>
           )}
         </div>
       </form>
+
+      <SuccessModal 
+        show={showSuccessModal} 
+        onClose={handleModalClose}
+        message={successMessage}
+      />
     </div>
   );
 };
